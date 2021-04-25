@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-// TODO: better generation of points and cluster centers
-
 #define num_points 10000
 #define num_clusters 10
 #define dims 5
@@ -24,6 +22,7 @@ Point clusters[num_clusters];
 int belongs_to[num_points];
 
 void generate_uniform_list_of_points();
+void generate_clustered_list_of_points();
 void print_points();
 long double calc_dist(Point x, Point y);
 void calc_belongs_to();
@@ -36,6 +35,8 @@ void write_points_to_file();
 void write_clusters_to_file();
 
 int main(int argc, char *argv[]) {
+  // srand(time(NULL));    // set rand seed
+
   generate_uniform_list_of_points();
   init_uniform_cluster_centers();
   write_clusters_to_file();
@@ -59,6 +60,42 @@ void generate_uniform_list_of_points() {
     }
   }
   return;
+}
+
+// TODO: fix :)
+void generate_clustered_list_of_points() {
+  int i, j, k;
+
+  int cluster_offsets[dims];
+  for (i = 0; i < dims; i++) {
+    cluster_offsets[dims] = 0;
+  }
+
+  int count = 0;
+  int clusters = (rand() % num_points) + 1;
+  int cluster_sizes[clusters];
+  int sz = num_points / clusters;
+  for (i = 0; i < clusters; i++) {
+    if (i == clusters - 1)
+      cluster_sizes[i] = num_points - count;
+    else {
+      cluster_sizes[i] = rand() % ((count - sz * i) + num_points / clusters);
+      count += cluster_sizes[i];
+    }
+  }
+
+  for (i = 0, j = 0; i < num_points; i++, cluster_sizes[j]--) {
+    if (cluster_sizes[j] == 0) {
+      j++;
+      for (k = 0; k < dims; k++) {
+        cluster_offsets[k] = (long double)(rand() % (max_num / clusters * 2)) / decimal;
+      }
+    }
+
+    for (k = 0; k < dims; k++) {
+      points[i].coords[j] = (long double)(((rand() % max_num) / decimal) + cluster_offsets[k]);
+    }
+  }
 }
 
 void print_points() {
@@ -190,8 +227,8 @@ void print_measures() {
   long double sum[num_clusters], min[num_clusters], max[num_clusters];
   int count[num_clusters];
   for (i = 0; i < num_clusters; i++) {
-    max[i] = -1;
-    min[i] = (long double)RAND_MAX;
+    max[i] = -RAND_MAX;
+    min[i] = RAND_MAX;
     count[i] = 0;
   }
   long double tmp;
@@ -208,7 +245,8 @@ void print_measures() {
   }
 
   for (i = 0; i < num_clusters; i++)
-    printf("\nAverage distance from cluster %d = %.3Lf\nVariation  = %.3Lf, min = %.3Lf, max = %.3Lf, count = %d\n", i + 1, sum[i] / count[i], max[i] - min[i], min[i], max[i], count[i]);
+    printf("\nAverage distance from cluster %d = %.3f\nVariation  = %.3f, min = %.3Lf, max = %.3Lf, count = %d\n",
+           i + 1, fabs(sum[i] / count[i]), fabs(max[i] - min[i]), min[i], max[i], count[i]);
 
   printf("\n Actual number of points = %d, Defined number of points = %d\n", ct, num_points);
 }
