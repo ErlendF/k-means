@@ -1,14 +1,15 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-// TODO: calculate avg distance/variance something for each cluster
-// TODO: print all points and cluster centers to csv
 // TODO: better generation of points and cluster centers
 
 #define num_points 10000
 #define num_clusters 10
 #define dims 5
+#define max_num 10000000000
+#define decimal 1000000
 
 #define points_file "points.csv"
 #define clusters_file "clusters.csv"
@@ -22,22 +23,22 @@ Point clusters[num_clusters];
 
 int belongs_to[num_points];
 
-void generate_list_of_points();
+void generate_uniform_list_of_points();
 void print_points();
 long double calc_dist(Point x, Point y);
 void calc_belongs_to();
 void print_belongs_to();
 int move_cluster_centers();
-void init_cluster_centers();
+void init_uniform_cluster_centers();
 void print_cluster_centers();
 void print_measures();
 void write_points_to_file();
 void write_clusters_to_file();
 
 int main(int argc, char *argv[]) {
-  generate_list_of_points();
-  // print_points();
-  init_cluster_centers();
+  generate_uniform_list_of_points();
+  init_uniform_cluster_centers();
+  write_clusters_to_file();
   do {
     calc_belongs_to();
   } while (move_cluster_centers() != 0);
@@ -49,21 +50,12 @@ int main(int argc, char *argv[]) {
   write_clusters_to_file();
 }
 
-void generate_list_of_points() {
-  int count = 0;  // coordinate array and its pointer
-  int i, j;       // iteration variables
+void generate_uniform_list_of_points() {
+  int i, j;  // iteration variables
 
   for (i = 0; i < num_points; i++) {
-    if (i % (num_points / num_clusters) == 0 &&
-        i > 0) {  // adds 20 to both future x and y coordinates to force clear
-                  // clusters
-      count += 20;
-    }
-
     for (j = 0; j < dims; j++) {
-      points[i].coords[j] =
-          count +
-          rand() % 10;  // giving values to the coordinate [coordinate][0=x,1=y]
+      points[i].coords[j] = (long double)(rand() % max_num) / decimal;  // generating points with two decimals
     }
   }
   return;
@@ -155,12 +147,12 @@ void calc_belongs_to() {
   }
 }
 
-void init_cluster_centers() {
+void init_uniform_cluster_centers() {
   int i, j;
   for (i = 0; i < num_clusters; i++) {
     int pt = rand() % num_points;
     for (j = 0; j < dims; j++) {
-      clusters[i].coords[j] = points[pt].coords[j];
+      clusters[i].coords[j] = (long double)(rand() % max_num) / decimal;
     }
   }
 }
@@ -207,7 +199,6 @@ void print_measures() {
     cls = belongs_to[i];
     tmp = calc_dist(points[i], clusters[cls]);
     ct++;
-
     sum[cls] += tmp;
     count[cls]++;
     if (tmp < min[cls])
