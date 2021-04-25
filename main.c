@@ -2,17 +2,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// TODO: calculate avg distance/variance something for each cluster
+// TODO: print all points and cluster centers to csv
+// TODO: better generation of points and cluster centers
+
 #define num_points 10000
 #define num_clusters 10
 #define dims 5
 
+#define points_file "points.csv"
+#define clusters_file "clusters.csv"
+
 typedef struct Point {
   long double coords[dims];
 } Point;
-
-// typedef struct Grid_cell {
-//   int *coords;
-// } Grid_cell;
 
 Point points[num_points];
 Point clusters[num_clusters];
@@ -27,6 +30,9 @@ void print_belongs_to();
 int move_cluster_centers();
 void init_cluster_centers();
 void print_cluster_centers();
+void print_measures();
+void write_points_to_file();
+void write_clusters_to_file();
 
 int main(int argc, char *argv[]) {
   generate_list_of_points();
@@ -38,6 +44,9 @@ int main(int argc, char *argv[]) {
 
   print_belongs_to();
   print_cluster_centers();
+  print_measures();
+  write_points_to_file();
+  write_clusters_to_file();
 }
 
 void generate_list_of_points() {
@@ -179,6 +188,68 @@ void print_cluster_centers() {
         printf("%.2Lf)\n", clusters[i].coords[j]);
       else
         printf("%.2Lf, ", clusters[i].coords[j]);
+    }
+  }
+}
+
+void print_measures() {
+  int i, j, cls;
+  int ct = 0;
+  long double sum[num_clusters], min[num_clusters], max[num_clusters];
+  int count[num_clusters];
+  for (i = 0; i < num_clusters; i++) {
+    max[i] = -1;
+    min[i] = (long double)RAND_MAX;
+    count[i] = 0;
+  }
+  long double tmp;
+  for (i = 0; i < num_points; i++) {
+    cls = belongs_to[i];
+    tmp = calc_dist(points[i], clusters[cls]);
+    ct++;
+
+    sum[cls] += tmp;
+    count[cls]++;
+    if (tmp < min[cls])
+      min[cls] = tmp;
+    else if (tmp > max[cls])
+      max[cls] = tmp;
+  }
+
+  for (i = 0; i < num_clusters; i++)
+    printf("\nAverage distance from cluster %d = %.3Lf\nVariation  = %.3Lf, min = %.3Lf, max = %.3Lf, count = %d\n", i + 1, sum[i] / count[i], max[i] - min[i], min[i], max[i], count[i]);
+
+  printf("\n Actual number of points = %d, Defined number of points = %d\n", ct, num_points);
+}
+
+void write_points_to_file() {
+  int i, j;
+  FILE *fp;
+
+  fp = fopen(points_file, "w+");
+  for (i = 0; i < num_points; i++) {
+    for (j = 0; j < dims; j++) {
+      if (j == dims - 1) {
+        fprintf(fp, "%Lf\n", points[i].coords[j]);
+      } else {
+        fprintf(fp, "%Lf, ", points[i].coords[j]);
+      }
+    }
+  }
+}
+
+void write_clusters_to_file() {
+  int i, j;
+  FILE *fp;
+
+  fp = fopen(clusters_file, "w+");
+  for (i = 0; i < num_clusters; i++) {
+    for (j = 0; j < dims; j++) {
+      if (j == dims - 1) {
+        fprintf(fp, "%Lf\n", clusters[i].coords[j]);
+      } else {
+        fprintf(fp, "%Lf, ", clusters[i].coords[j]);
+      }
     }
   }
 }
