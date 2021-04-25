@@ -15,7 +15,7 @@ typedef struct Point {
 // } Grid_cell;
 
 Point points[num_points];
-Point centers[num_clusters];
+Point clusters[num_clusters];
 
 int belongs_to[num_points];
 
@@ -26,15 +26,21 @@ void calc_belongs_to();
 void print_belongs_to();
 int move_cluster_centers();
 void init_cluster_centers();
+void print_cluster_centers();
 
 int main(int argc, char *argv[]) {
   generate_list_of_points();
   print_points();
   init_cluster_centers();
   do {
+    printf("New round!!\n\n");
+    print_cluster_centers();
     calc_belongs_to();
     print_belongs_to();
   } while (move_cluster_centers() != 0);
+
+  printf("Finished!\n");
+  print_cluster_centers();
 }
 
 void generate_list_of_points() {
@@ -108,13 +114,13 @@ int move_cluster_centers() {
 
   for (i = 0; i < num_clusters; i++) {
     for (j = 0; j < dims; j++) {
-      new_coord = sum_dims[i][j] / counts[i];
+      new_coord = sum_dims[i][j] / (long double)counts[i];
 
-      if (centers[i].coords[j] != new_coord) {
+      if (clusters[i].coords[j] != new_coord) {
         moved = 1;
       }
 
-      centers[i].coords[j] = new_coord;
+      clusters[i].coords[j] = new_coord;
     }
   }
 
@@ -123,11 +129,13 @@ int move_cluster_centers() {
 
 void calc_belongs_to() {
   int i, j;
-  long double dist = RAND_MAX;
-  int cluster = -1;
+  long double dist, tmpdist;
+  int cluster;
   for (i = 0; i < num_points; i++) {
+    dist = RAND_MAX;
+    cluster = -1;
     for (j = 0; j < num_clusters; j++) {
-      long double tmpdist = calc_dist(points[i], centers[j]);
+      tmpdist = calc_dist(points[i], clusters[j]);
       if (tmpdist < dist) {
         dist = tmpdist;
         cluster = j;
@@ -142,14 +150,34 @@ void init_cluster_centers() {
   for (i = 0; i < num_clusters; i++) {
     int pt = rand() % num_points;
     for (j = 0; j < dims; j++) {
-      centers[i].coords[j] = points[pt].coords[j];
+      clusters[i].coords[j] = points[pt].coords[j];
     }
   }
 }
 
 void print_belongs_to() {
   int i, j;
+  for (i = 0; i < num_points; i++) {
+    printf("Point %d (", i);
+    for (j = 0; j < dims; j++) {
+      if (j == dims - 1)
+        printf("%.2Lf) ", points[i].coords[j]);
+      else
+        printf("%.2Lf, ", points[i].coords[j]);
+    }
+    printf("belongs to cluster %d\n", belongs_to[i]);
+  }
+}
 
-  for (i = 0; i < num_points; i++)
-    printf("Point %d belongs to cluster %d\n", i, belongs_to[i]);
+void print_cluster_centers() {
+  int i, j;
+  for (i = 0; i < num_clusters; i++) {
+    printf("Cluster %d: (", i);
+    for (j = 0; j < dims; j++) {
+      if (j == dims - 1)
+        printf("%.2Lf)\n", clusters[i].coords[j]);
+      else
+        printf("%.2Lf, ", clusters[i].coords[j]);
+    }
+  }
 }
