@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define num_points 100
-#define num_clusters 4
+#define num_points 10000
+#define num_clusters 10
 #define dims 5
 
 typedef struct Point {
@@ -30,16 +30,13 @@ void print_cluster_centers();
 
 int main(int argc, char *argv[]) {
   generate_list_of_points();
-  print_points();
+  // print_points();
   init_cluster_centers();
   do {
-    printf("New round!!\n\n");
-    print_cluster_centers();
     calc_belongs_to();
-    print_belongs_to();
   } while (move_cluster_centers() != 0);
 
-  printf("Finished!\n");
+  print_belongs_to();
   print_cluster_centers();
 }
 
