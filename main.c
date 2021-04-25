@@ -4,7 +4,7 @@
 
 #define num_points 100
 #define num_clusters 4
-#define dims 2
+#define dims 5
 
 typedef struct Point {
   long double coords[dims];
@@ -113,6 +113,10 @@ int move_cluster_centers() {
   }
 
   for (i = 0; i < num_clusters; i++) {
+    if (counts[i] == 0) {
+      continue;
+    }
+
     for (j = 0; j < dims; j++) {
       new_coord = sum_dims[i][j] / (long double)counts[i];
 
@@ -158,21 +162,21 @@ void init_cluster_centers() {
 void print_belongs_to() {
   int i, j;
   for (i = 0; i < num_points; i++) {
-    printf("Point %d (", i);
+    printf("Point %d (", i + 1);
     for (j = 0; j < dims; j++) {
       if (j == dims - 1)
         printf("%.2Lf) ", points[i].coords[j]);
       else
         printf("%.2Lf, ", points[i].coords[j]);
     }
-    printf("belongs to cluster %d\n", belongs_to[i]);
+    printf("belongs to cluster %d\n", belongs_to[i] + 1);
   }
 }
 
 void print_cluster_centers() {
   int i, j;
   for (i = 0; i < num_clusters; i++) {
-    printf("Cluster %d: (", i);
+    printf("Cluster %d: (", i + 1);
     for (j = 0; j < dims; j++) {
       if (j == dims - 1)
         printf("%.2Lf)\n", clusters[i].coords[j]);
