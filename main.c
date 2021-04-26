@@ -3,11 +3,11 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define num_points 10000
-#define num_clusters 10
-#define dims 5
-#define max_num 10000000000
-#define decimal 1000000
+#define num_points 20
+#define num_clusters 4
+#define dims 2
+#define max_num 100
+#define decimal 1
 
 #define points_file "points.csv"
 #define clusters_file "clusters.csv"
@@ -56,7 +56,8 @@ void generate_uniform_list_of_points() {
 
   for (i = 0; i < num_points; i++) {
     for (j = 0; j < dims; j++) {
-      points[i].coords[j] = (long double)(rand() % max_num) / decimal;  // generating points with two decimals
+      points[i].coords[j] = (long double)(rand() % max_num) /
+                            decimal;  // generating points with two decimals
     }
   }
   return;
@@ -88,12 +89,14 @@ void generate_clustered_list_of_points() {
     if (cluster_sizes[j] == 0) {
       j++;
       for (k = 0; k < dims; k++) {
-        cluster_offsets[k] = (long double)(rand() % (max_num / clusters * 2)) / decimal;
+        cluster_offsets[k] =
+            (long double)(rand() % (max_num / clusters * 2)) / decimal;
       }
     }
 
     for (k = 0; k < dims; k++) {
-      points[i].coords[j] = (long double)(((rand() % max_num) / decimal) + cluster_offsets[k]);
+      points[i].coords[j] =
+          (long double)(((rand() % max_num) / decimal) + cluster_offsets[k]);
     }
   }
 }
@@ -117,10 +120,11 @@ long double calc_dist(Point x, Point y) {
   int i;
   long double dist = 0;
   for (i = 0; i < dims; i++) {
-    dist += pow(x.coords[i] - y.coords[i], 2);  // Ignored sqrt as we are comparing relative distances
+    dist += pow(x.coords[i] - y.coords[i],
+                2);  // Ignored sqrt as we are comparing relative distances
   }
-  // printf("points = (%Lf, %Lf),(%Lf, %Lf) (distance = %Lf)\n", x.coords[0], x.coords[1], y.coords[0], y.coords[1], dist);
-
+  // printf("points = (%Lf, %Lf),(%Lf, %Lf) (distance = %Lf)\n", x.coords[0],
+  // x.coords[1], y.coords[0], y.coords[1], dist);
   return dist;
 }
 
@@ -238,17 +242,20 @@ void print_measures() {
     ct++;
     sum[cls] += tmp;
     count[cls]++;
-    if (tmp < min[cls])
-      min[cls] = tmp;
-    else if (tmp > max[cls])
-      max[cls] = tmp;
+    if (tmp < min[cls]) min[cls] = tmp;
+    if (tmp > max[cls]) max[cls] = tmp;
+    printf("\tAfter min: %Lf max: %Lf \n", min[cls], max[cls]);
   }
 
   for (i = 0; i < num_clusters; i++)
-    printf("\nAverage distance from cluster %d = %.3f\nVariation  = %.3f, min = %.3Lf, max = %.3Lf, count = %d\n",
-           i + 1, fabs(sum[i] / count[i]), fabs(max[i] - min[i]), min[i], max[i], count[i]);
+    printf(
+        "\nAverage distance from cluster %d = %.3f\nVariation  = %.3f, min = "
+        "%.3Lf, max = %.3Lf, count = %d\n",
+        i + 1, fabs(sum[i] / count[i]), fabs(max[i] - min[i]), min[i], max[i],
+        count[i]);
 
-  printf("\n Actual number of points = %d, Defined number of points = %d\n", ct, num_points);
+  printf("\n Actual number of points = %d, Defined number of points = %d\n", ct,
+         num_points);
 }
 
 void write_points_to_file() {
