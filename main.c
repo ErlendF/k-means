@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define num_points 200
-#define num_clusters 4
+#define num_points 2
+#define num_clusters 30
 #define dims 2
-#define max_num 5000000  // no more than 5000000
+#define max_num 50000  // no more than 5000000
 #define decimal 100
 #define num_cells 4
 
@@ -57,12 +57,11 @@ int main(int argc, char *argv[]) {
 
   generate_clustered_list_of_points();
   init_uniform_cluster_centers();
-  write_clusters_to_file();
   do {
     calc_belongs_to();
   } while (move_cluster_centers() != 0);
 
-  print_belongs_to();
+  // print_belongs_to();
   print_cluster_centers();
   print_measures();
   write_points_to_file();
@@ -85,40 +84,50 @@ void generate_uniform_list_of_points() {
 void generate_clustered_list_of_points() {
   int i, j, k;
 
-  int cluster_offsets[dims];
+  long double cluster_offsets[dims];
   for (i = 0; i < dims; i++) {
     cluster_offsets[i] = 0;
   }
 
-  int count = 0;
-  int clusters = (rand() % num_points) + 1;
-  int cluster_sizes[clusters];
-  int size = num_points / clusters;
-  for (i = 0; i < clusters; i++) {
-    if (i == clusters - 1)
-      cluster_sizes[i] = num_points - count;
-    else {
-      cluster_sizes[i] = rand() % ((size * i - count) + num_points / clusters) + 1;
-      count += cluster_sizes[i];
-    }
-    printf("Cluster size %d = %d\n", i, cluster_sizes[i]);
-  }
+  // int count = 0;
+  // int clusters = (rand() % (num_points / 2));
+  // int cluster_sizes[clusters];
+  // int size = num_points / clusters;
+  // printf("%d, clusters= %d\n", size, clusters);
+  // for (i = 0; i < clusters; i++) {
+  //   if (i == clusters - 1)
+  //     cluster_sizes[i] = num_points - count;
+  //   else {
+  //     cluster_sizes[i] = 1 + (rand() % size);
+  //     count += cluster_sizes[i];
+  //   }
+  //   printf("Cluster size %d = %d\nCount = %d\n", i, cluster_sizes[i], count);
+  // }
 
-  for (i = 0, j = 0; i < num_points; i++, cluster_sizes[j]--) {
-    printf("%d: Cluster size[%d]=%d\n", i, j, cluster_sizes[j]);
-    if (cluster_sizes[j] == 0 && j < clusters - 1) {
-      j++;
+  int cluster_size = ((rand() % num_points) / 10) + num_points / 100;
+  int cluster_count = 0;
+  int sz = 0;
+
+  for (i = 0, j = 0; i < num_points; i++, cluster_size--) {
+    // printf("%d: Cluster size[%d]=%d\n", i, j, cluster_sizes[j]);
+    if (cluster_size <= 0) {
+      cluster_count++;
+      cluster_size = ((rand() % num_points) / 10) + num_points / 100;
+      printf("New cluster size: %d\n", cluster_size);
       for (k = 0; k < dims; k++) {
         cluster_offsets[k] =
-            (long double)(rand() % (max_num / clusters * 2)) / decimal;
+            (long double)(rand() % max_num) / decimal;
       }
     }
 
     for (k = 0; k < dims; k++) {
       points[i].coords[k] =
-          (((long double)(rand() % max_num) / decimal) + (long double)cluster_offsets[k]);
+          (((long double)(rand() % (num_points * decimal)) / decimal) + (long double)cluster_offsets[k]);
     }
   }
+
+  printf("Num clusters: %d\n", cluster_count);
+  print_points();
 }
 
 void print_points() {
@@ -126,11 +135,11 @@ void print_points() {
   for (i = 0; i < num_points; i++) {
     for (j = 0; j < dims; j++) {
       if (j == 0) {
-        printf("(%Lf, ", points[i].coords[j]);
+        printf("(%.2Lf, ", points[i].coords[j]);
       } else if (j == dims - 1) {
-        printf("%Lf)\n", points[i].coords[j]);
+        printf("%.2Lf)\n", points[i].coords[j]);
       } else {
-        printf("%Lf, ", points[i].coords[j]);
+        printf("%.2Lf, ", points[i].coords[j]);
       }
     }
   }
@@ -270,6 +279,10 @@ void print_measures() {
   }
 
   for (i = 0; i < num_clusters; i++) {
+    if (count[i] == 0) {
+      printf("\nCluster %d did not find any points </3\n", i);
+      continue;
+    }
     printf("\nAverage distance from cluster %d = %.3Lf\n", i + 1, sum[i] / count[i]);
     printf("Variation  = %.3Lf, min = %.3Lf, max = %.3Lf, count = %d, sum = %Lf\n", max[i] - min[i], min[i], max[i], count[i], sum[i]);
   }
