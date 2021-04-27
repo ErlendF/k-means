@@ -8,6 +8,7 @@
 #define dims 2
 #define max_num 100
 #define decimal 1
+#define num_cells 4
 
 #define points_file "points.csv"
 #define clusters_file "clusters.csv"
@@ -15,6 +16,14 @@
 typedef struct Point {
   long double coords[dims];
 } Point;
+
+// int *cell_clust;  // The cluster closest to the cell
+int *cell_valid;  // 1 if there is only one cluster closest to the cell, 0 otherwise
+int *grid_points_closest;
+int tot_num_cells;
+int num_cell_points;
+
+Point *grid_points;
 
 Point points[num_points];
 Point clusters[num_clusters];
@@ -33,9 +42,17 @@ void print_cluster_centers();
 void print_measures();
 void write_points_to_file();
 void write_clusters_to_file();
+void init_grid();
 
 int main(int argc, char *argv[]) {
   // srand(time(NULL));    // set rand seed
+
+  // printf("Test\n");
+  init_grid();
+  // int i;
+  // for (i = 0; i < num_cell_points; i++) {
+  //   printf("%d: (%Lf, %Lf, %Lf)\n", i, grid_points[i].coords[0], grid_points[i].coords[1], grid_points[i].coords[2]);
+  // }
 
   generate_uniform_list_of_points();
   init_uniform_cluster_centers();
@@ -234,6 +251,7 @@ void print_measures() {
     max[i] = -RAND_MAX;
     min[i] = RAND_MAX;
     count[i] = 0;
+    sum[i] = 0;
   }
   long double tmp;
   for (i = 0; i < num_points; i++) {
@@ -249,10 +267,10 @@ void print_measures() {
 
   for (i = 0; i < num_clusters; i++)
     printf(
-        "\nAverage distance from cluster %d = %.3f\nVariation  = %.3f, min = "
-        "%.3Lf, max = %.3Lf, count = %d\n",
-        i + 1, fabs(sum[i] / count[i]), fabs(max[i] - min[i]), min[i], max[i],
-        count[i]);
+        "\nAverage distance from cluster %d = %.3Lf\nVariation  = %.3Lf, min = "
+        "%.3Lf, max = %.3Lf, count = %d, sum = %Lf\n",
+        i + 1, sum[i] / count[i], max[i] - min[i], min[i], max[i],
+        count[i], sum[i]);
 
   printf("\n Actual number of points = %d, Defined number of points = %d\n", ct,
          num_points);
@@ -287,5 +305,29 @@ void write_clusters_to_file() {
         fprintf(fp, "%Lf, ", clusters[i].coords[j]);
       }
     }
+  }
+}
+
+// https://stackoverflow.com/questions/29787310/does-pow-work-for-int-data-type-in-c
+void init_grid() {
+  tot_num_cells = (int)(pow(num_cells, dims) + 0.5);  // TODO: test :)
+  num_cell_points = (int)(pow(num_cells + 1, dims) + 0.5);
+  printf("Num cell points: %d\nTot num cells: %d\n", num_cell_points, tot_num_cells);
+
+  cell_valid = (int *)malloc(sizeof(int) * tot_num_cells);
+  grid_points_closest = (int *)malloc(sizeof(int) * num_cell_points);  // Holds clost cluster nr.
+  grid_points = (Point *)malloc(sizeof(Point) * num_cell_points);
+
+  int i, j;
+  for (i = 0; i < num_cell_points; i++) {
+    for (j = 0; j < dims; j++) {
+      grid_points[i].coords[j] = (i % (int)(pow(num_cells + 1, j + 1) + 0.5)) / (int)(pow(num_cells + 1, j) + 0.5);  // TODO: gang med cell width
+    }
+  }
+}
+
+void calculate_grid_closest_cluster() {
+  int i, j;
+  for (i = 0; i < num_cell_points; i++) {
   }
 }
