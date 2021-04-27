@@ -110,7 +110,6 @@ void generate_clustered_list_of_points() {
   }
 
   printf("Num clusters: %d\n", cluster_count);
-  // print_points();
 }
 
 void print_points() {
@@ -132,11 +131,8 @@ long double calc_dist(Point x, Point y) {
   int i;
   long double dist = 0;
   for (i = 0; i < dims; i++) {
-    dist += pow(x.coords[i] - y.coords[i],
-                2);  // Ignored sqrt as we are comparing relative distances
+    dist += pow(x.coords[i] - y.coords[i], 2);  // Ignored sqrt as we are comparing relative distances
   }
-  // printf("points = (%Lf, %Lf),(%Lf, %Lf) (distance = %Lf)\n", x.coords[0],
-  // x.coords[1], y.coords[0], y.coords[1], dist);
   return dist;
 }
 
@@ -255,10 +251,8 @@ void print_measures() {
     ct++;
     sum[cls] += tmp;
     count[cls]++;
-    // printf("%d: cls: %d, count: %d\n", i, cls, count[cls]);
     if (tmp < min[cls]) min[cls] = tmp;
     if (tmp > max[cls]) max[cls] = tmp;
-    // printf("\tAfter min: %Lf max: %Lf \n", min[cls], max[cls]);
   }
 
   for (i = 0; i < num_clusters; i++) {
