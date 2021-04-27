@@ -1,3 +1,4 @@
+#include <float.h>
 #include <math.h>
 
 #define grid_size 0.1
@@ -16,7 +17,7 @@ GridPos allGrids[parts_grid_x * parts_grid_y];
 
 void initialize_grid_structs() {
   // To start off we set all grids to not reach any cluster
-  int i, j = 0;
+  int i, j;
   for (i = 0; i < parts_grid_y * parts_grid_x; i++) {
     for (j = 0; j < nr_clusters; j++) {
       allGrids[i].possibleCluster[j] = 0;
@@ -29,9 +30,9 @@ Point closest_cluster(int num_clusters, Point *clusters, float x1, float y1,
   /*
       Search to find the closest cluster.
   */
-  int i = 0;
+  int i;
   Point closest;
-  long double dist = -MAXFLOAT;
+  long double dist = FLT_MIN;
   for (i = 0; i < num_clusters; i++) {
     int current_cluster_x = clusters[i].coords[0];
     int current_cluster_y = clusters[i].coords[1];
@@ -60,7 +61,7 @@ void update_grid(int num_clusters, Point *clusters, GridPos current,
 
   // Bottom_right - top_right
 }
-
+/*
 long double distance_from_line_to_point(float px1, float py1, float lx1,
                                         float ly1, float lx2, float ly2) {
   // Joikned from stackOverflow.
@@ -81,9 +82,9 @@ long double distance_from_line_to_point(float px1, float py1, float lx1,
   long double dy = y - ly2;
   long double dist = sqrt(dx * dx + dy * dy);
   return dist;
-}
+}*/
 
 int grid_calc_belongs_to(int nodes_num, int cluster_num, int max_width,
                          Point *nodes, Point *clusters) {
-  initialize_grid_structs()
+  initialize_grid_structs();
 }

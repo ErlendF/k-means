@@ -319,12 +319,18 @@ void init_grid() {
   grid_points = (Point *)malloc(sizeof(Point) * num_cell_points);
 
   int i, j;
+
+  // TODO: handle edge cases :)
   for (i = 0; i < num_cell_points; i++) {
     for (j = 0; j < dims; j++) {
       grid_points[i].coords[j] = (i % (int)(pow(num_cells + 1, j + 1) + 0.5)) / (int)(pow(num_cells + 1, j) + 0.5);  // TODO: gang med cell width
     }
   }
 }
+
+// TODO: Point -> index
+
+// TODO: Index -> Point
 
 void calculate_grid_closest_cluster() {
   int i, j;
