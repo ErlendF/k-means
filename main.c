@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define num_points 100
+#define num_points 1000
 #define num_clusters 10
 #define dims 3
 #define max_num 50000  // no more than 5000000
@@ -453,7 +453,7 @@ int pmove_cluster_centers() {
   }
 #pragma omp barrier
   // Calculating sums
-  // #pragma omp parallel for
+  #pragma omp parallel for schedule(static, num_points/num_threads)
   for (i = 0; i < num_points; i++) {
     cluster = belongs_to[i];
     counts[cluster]++;
@@ -461,7 +461,7 @@ int pmove_cluster_centers() {
       sum_dims[cluster][j] += points[i].coords[j];
     }
   }
-  // #pragma omp barrier
+  #pragma omp barrier
 
 #pragma omp parallel for
   for (i = 0; i < num_clusters; i++) {
