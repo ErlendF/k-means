@@ -1,15 +1,16 @@
 #include <float.h>
 #include <math.h>
+#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #define num_points 100
 #define num_clusters 3
-#define dims 2
+#define dims 3
 #define max_num 50000  // no more than 5000000
 #define decimal 100
-#define num_cells 4
+#define num_cells 3
 
 #define points_file "points.csv"
 #define clusters_file "clusters.csv"
@@ -22,9 +23,10 @@ typedef struct Point {
 int *cell_valid;  // 1 if there is only one cluster closest to the cell, 0 otherwise
 int *grid_points_closest;
 int tot_num_cells;
-int num_cell_points;
+int num_cell_corners;
+double mt1, mt2;  //timing variables
 
-Point *grid_points;
+Point *grid_corners;
 
 Point points[num_points];
 Point clusters[num_clusters];
@@ -44,6 +46,10 @@ void print_measures();
 void write_points_to_file();
 void write_clusters_to_file();
 void init_grid();
+// void pkmeans();
+void pcalc_belongs_to();
+int pmove_cluster_centers();
+void calculate_grid_closest_cluster();
 
 int main(int argc, char *argv[]) {
   // srand(time(NULL));    // set rand seed
@@ -51,21 +57,35 @@ int main(int argc, char *argv[]) {
   // printf("Test\n");
   // init_grid();
   // int i;
-  // for (i = 0; i < num_cell_points; i++) {
-  //   printf("%d: (%Lf, %Lf, %Lf)\n", i, grid_points[i].coords[0], grid_points[i].coords[1], grid_points[i].coords[2]);
+  // for (i = 0; i < num_cell_corners; i++) {
+  //   printf("%d: (%Lf, %Lf, %Lf)\n", i, grid_corners[i].coords[0], grid_corners[i].coords[1], grid_corners[i].coords[2]);
   // }
 
-  generate_clustered_list_of_points();
-  init_uniform_cluster_centers();
+  generate_clustered_list_of_points();  //Sequential
+  init_uniform_cluster_centers();       //Sequential?
+  // pkmeans(num_points, num_clusters, dims, points, clusters, belongs_to);
+  init_grid();
+  //calculate_grid_closest_cluster();
+
+  // do {
+  //   calc_belongs_to();                    //Parallel
+  // } while (move_cluster_centers() != 0);  //Parallel?
+  mt1 = omp_get_wtime();
+
   do {
-    calc_belongs_to();
-  } while (move_cluster_centers() != 0);
+    pcalc_belongs_to();                    //Parallel
+  } while (pmove_cluster_centers() != 0);  //Parallel?
+
+  mt2 = omp_get_wtime();
 
   // print_belongs_to();
   print_cluster_centers();
   print_measures();
+
   write_points_to_file();
   write_clusters_to_file();
+
+  printf("Clusters found in %f seconds\n", mt2 - mt1);
 }
 
 void generate_uniform_list_of_points() {
@@ -80,7 +100,6 @@ void generate_uniform_list_of_points() {
   return;
 }
 
-// TODO: fix :)
 void generate_clustered_list_of_points() {
   int i, j, k;
 
@@ -136,6 +155,24 @@ long double calc_dist(Point x, Point y) {
   return dist;
 }
 
+void calc_belongs_to() {
+  int i, j;
+  long double dist, tmpdist;
+  int cluster;
+  for (i = 0; i < num_points; i++) {
+    dist = RAND_MAX;
+    cluster = -1;
+    for (j = 0; j < num_clusters; j++) {
+      tmpdist = calc_dist(points[i], clusters[j]);
+      if (tmpdist < dist) {
+        dist = tmpdist;
+        cluster = j;
+      }
+    }
+    belongs_to[i] = cluster;
+  }
+}
+
 int move_cluster_centers() {
   int i, j, cluster;
   int moved = 0;
@@ -176,24 +213,6 @@ int move_cluster_centers() {
   }
 
   return moved;
-}
-
-void calc_belongs_to() {
-  int i, j;
-  long double dist, tmpdist;
-  int cluster;
-  for (i = 0; i < num_points; i++) {
-    dist = RAND_MAX;
-    cluster = -1;
-    for (j = 0; j < num_clusters; j++) {
-      tmpdist = calc_dist(points[i], clusters[j]);
-      if (tmpdist < dist) {
-        dist = tmpdist;
-        cluster = j;
-      }
-    }
-    belongs_to[i] = cluster;
-  }
 }
 
 void init_uniform_cluster_centers() {
@@ -303,19 +322,19 @@ void write_clusters_to_file() {
 // https://stackoverflow.com/questions/29787310/does-pow-work-for-int-data-type-in-c
 void init_grid() {
   tot_num_cells = (int)(pow(num_cells, dims) + 0.5);  // TODO: test :)
-  num_cell_points = (int)(pow(num_cells + 1, dims) + 0.5);
-  printf("Num cell points: %d\nTot num cells: %d\n", num_cell_points, tot_num_cells);
+  num_cell_corners = (int)(pow(num_cells + 1, dims) + 0.5);
+  printf("Num cell points: %d\nTot num cells: %d\n", num_cell_corners, tot_num_cells);
 
   cell_valid = (int *)malloc(sizeof(int) * tot_num_cells);
-  grid_points_closest = (int *)malloc(sizeof(int) * num_cell_points);  // Holds clost cluster nr.
-  grid_points = (Point *)malloc(sizeof(Point) * num_cell_points);
+  grid_points_closest = (int *)malloc(sizeof(int) * num_cell_corners);  // Holds clost cluster nr.
+  grid_corners = (Point *)malloc(sizeof(Point) * num_cell_corners);
 
   int i, j;
 
   // TODO: handle edge cases :)
-  for (i = 0; i < num_cell_points; i++) {
+  for (i = 0; i < num_cell_corners; i++) {
     for (j = 0; j < dims; j++) {
-      grid_points[i].coords[j] = (i % (int)(pow(num_cells + 1, j + 1) + 0.5)) / (int)(pow(num_cells + 1, j) + 0.5);  // TODO: gang med cell width
+      grid_corners[i].coords[j] = (i % (int)(pow(num_cells + 1, j + 1) + 0.5)) / (int)(pow(num_cells + 1, j) + 0.5);  // TODO: gang med cell width
     }
   }
 }
@@ -325,7 +344,140 @@ void init_grid() {
 // TODO: Index -> Point
 
 void calculate_grid_closest_cluster() {
-  int i, j;
-  for (i = 0; i < num_cell_points; i++) {
+  int i, j, k, cluster;
+  long double dist, tmpdist;
+  for (i = 0; i < num_cell_corners; i++) {
+    dist = RAND_MAX;
+    cluster = -1;
+    for (j = 0; j < num_clusters; j++) {
+      tmpdist = calc_dist(grid_corners[i], clusters[j]);
+      if (tmpdist < dist) {
+        dist = tmpdist;
+        cluster = j;
+        if ((j / k) % k + 1 != 0) {
+          //   idx += (int)(pow(num_cells + 1, (j / k + 1) % k + 1));
+          // }
+        }
+
+        int closest, idx, valid;
+        int corners = (int)(pow(2, dims) + 0.5);
+        for (i = 0; i < tot_num_cells; i++) {
+          valid = 1;
+          closest = -1;
+          for (j = 0; j < corners; j++) {
+            idx = i + (i / num_cells);
+            for (k = 1; k < dims; k++) {
+              //grid_corners
+
+              //[4]       [0][1]=[0+num_cell]  [2]=[0+num_cell^dim], 3=[1]+num_cell^2
+
+              // if ((j / k) % k + 1 != 0) {
+              //   idx += (int)(pow(num_cells + 1, (j / k + 1) % k + 1));
+              // }
+            }
+            printf("Cell %d, corner %d: idx %d\n", i, j, idx);
+
+            if (closest == -1) {
+              closest = grid_points_closest[idx];
+            } else if (closest != grid_points_closest[idx]) {
+              cell_valid[i] = 0;
+              break;
+            }
+          }
+        }
+      }
+    }
   }
+}
+
+/*
+LALALALALALALALALALALALALALLALA her prøver jeg parallel shit damdidamdidamdidam
+
+--------------------------------------------------------------------------------------------------------------------------
+##########################################################################################################################
+--------------------------------------------------------------------------------------------------------------------------
+##########################################################################################################################
+--------------------------------------------------------------------------------------------------------------------------
+##########################################################################################################################
+--------------------------------------------------------------------------------------------------------------------------
+##########################################################################################################################
+--------------------------------------------------------------------------------------------------------------------------
+##########################################################################################################################
+--------------------------------------------------------------------------------------------------------------------------
+##########################################################################################################################
+
+
+void pkmeans(int num_points, int num_clusters, int dims, Point *points, Point *clusters, int *belongs_to) {
+  int num_threads = omp_get_num_threads();
+  int thread_id = omp_get_thread_num();
+  do {
+    pcalc_belongs_to(num_points, num_clusters, belongs_to, dims, clusters);  //Parallel
+  } while (pmove_cluster_centers(num_clusters, dims, num_points, belongs_to, points) != 0);
+}
+*/
+
+void pcalc_belongs_to() {
+  int i, j, k, cluster;
+  long double dist, tmpdist;
+  // #pragma omp parallel for
+  for (i = 0; i < num_points; i++) {
+    dist = RAND_MAX;
+    cluster = -1;
+    for (j = 0; j < num_clusters; j++) {
+      tmpdist = calc_dist(points[i], clusters[j]);
+      if (tmpdist < dist) {
+        dist = tmpdist;
+        cluster = j;
+      }
+    }
+    belongs_to[i] = cluster;
+  }
+}
+
+int pmove_cluster_centers() {
+  int num_threads = omp_get_num_threads();
+  int i, j, cluster;
+  int *moved = (int *)malloc(sizeof(int *) * num_threads);
+  int counts[num_clusters];
+  long double sum_dims[num_clusters][dims];
+  long double new_coord;
+
+// Initializing
+#pragma omp parallel for
+  for (i = 0; i < num_clusters; i++) {
+    counts[i] = 0;
+    for (j = 0; j < dims; j++) {
+      sum_dims[i][j] = 0;
+    }
+  }
+#pragma omp barrier
+  // Calculating sums
+  // #pragma omp parallel for
+  for (i = 0; i < num_points; i++) {
+    cluster = belongs_to[i];
+    counts[cluster]++;
+    for (j = 0; j < dims; j++) {
+      sum_dims[cluster][j] += points[i].coords[j];
+    }
+  }
+  // #pragma omp barrier
+
+#pragma omp parallel for
+  for (i = 0; i < num_clusters; i++) {
+    if (counts[i] == 0) {
+      continue;
+    }
+
+    for (j = 0; j < dims; j++) {
+      new_coord = sum_dims[i][j] / (long double)counts[i];
+
+      if (clusters[i].coords[j] != new_coord) {
+        moved = 1;
+      }
+
+      clusters[i].coords[j] = new_coord;
+    }
+  }
+
+  return moved;
 }
