@@ -6,7 +6,7 @@
 #include <time.h>
 
 #define num_points 100
-#define num_clusters 3
+#define num_clusters 10
 #define dims 3
 #define max_num 50000  // no more than 5000000
 #define decimal 100
@@ -436,7 +436,8 @@ void pcalc_belongs_to() {
 
 int pmove_cluster_centers() {
   int num_threads = omp_get_num_threads();
-  int i, j, cluster;
+  int thread_id = omp_get_thread_num();
+  int i, j, mv, cluster;
   int *moved = (int *)malloc(sizeof(int *) * num_threads);
   int counts[num_clusters];
   long double sum_dims[num_clusters][dims];
@@ -472,12 +473,20 @@ int pmove_cluster_centers() {
       new_coord = sum_dims[i][j] / (long double)counts[i];
 
       if (clusters[i].coords[j] != new_coord) {
-        moved = 1;
+        moved[thread_id] = 1;
       }
 
       clusters[i].coords[j] = new_coord;
     }
   }
+#pragma omp barrier
+#pragma omp master
+  mv=0;
+  for (i=0;i<num_threads;i++)
+    if (moved[i]!=0){
+      mv = 1;
+      break;
+    }
 
-  return moved;
+  return mv;
 }
