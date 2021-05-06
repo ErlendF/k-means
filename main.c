@@ -71,12 +71,11 @@ int main(int argc, char *argv[]) {
   //   calc_belongs_to();                    //Parallel
   // } while (move_cluster_centers() != 0);  //Parallel?
   
-  printf("Num threads = %d\n", omp_get_num_threads());
   mt1 = omp_get_wtime();
 
   do {
     pcalc_belongs_to();                    //Parallel
-  } while (pmove_cluster_centers() != 0);  //Parallel?
+  } while (move_cluster_centers() != 0);  //Parallel?
 
 printf("TEST\n");
   mt2 = omp_get_wtime();
@@ -449,24 +448,31 @@ int pmove_cluster_centers() {
 
 
   //int num_threads = omp_get_num_threads();
-  int num_threads = 4;
-  printf("Num_threads = %d\n", num_threads);
-  
-  int i, j, mv, cluster;
-  int thread_id;
-  int *moved = (int *)malloc(sizeof(int *) * num_threads);
+  //int num_threads = 4;
+  //printf("Num_threads = %d\n", num_threads);
+  int mv;
+  int *moved = (int *)malloc(sizeof(int *) * 4);
+  #pragma omp parallel
+  {
+  int num_threads = omp_get_num_threads();
+  int thread_id = omp_get_thread_num();
+  int i, j, cluster;
+  moved[thread_id]=0;
+//  int thread_id;
+
   int counts[num_clusters];
   long double sum_dims[num_clusters][dims];
   long double new_coord;
-  #pragma omp parallel
-  {
-  thread_id = omp_get_thread_num();
+//  int num_threads;
+
+
+  //printf("Thread id = %d of %d\n", thread_id, num_threads);
   //printf("Num threads = %d\n", num_threads);
 // Initializing
   //#pragma omp barrier
 
   //printf("Initializing\n");
-#pragma omp parallel for private(i, j) schedule(static, num_clusters/num_threads)
+#pragma omp for private(i, j) schedule(static, num_clusters/num_threads)
   for (i = 0; i < num_clusters; i++) {
     counts[i] = 0;
     for (j = 0; j < dims; j++) {
@@ -477,7 +483,7 @@ int pmove_cluster_centers() {
   //printf("sums\n");
 #pragma omp barrier
   // Calculating sums
-  #pragma omp for schedule(static, num_points/num_threads) private(cluster, i, j)
+  #pragma omp for private(cluster, i, j)
   for (i = 0; i < num_points; i++) {
     cluster = belongs_to[i];
     counts[cluster]++;
@@ -487,7 +493,7 @@ int pmove_cluster_centers() {
   }
   #pragma omp barrier
 //printf("moving centers\n");
-#pragma omp parallel for private(i, j)
+#pragma omp for private(i, j, new_coord)
   for (i = 0; i < num_clusters; i++) {
     if (counts[i] == 0) {
       continue;
@@ -507,13 +513,13 @@ int pmove_cluster_centers() {
 //printf("checking if moved\n");
 #pragma omp master
   mv=0;
-  for (i=0;i<num_threads;i++)
+  for (i=0;i<num_threads;i++){
+    printf("Moved = %d\n", moved[i]);
     if (moved[i]!=0){
       mv = 1;
       break;
     }
-
-  
+  }  
 }
 return mv;
 }
