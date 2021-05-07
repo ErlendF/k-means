@@ -39,22 +39,24 @@ int main(int argc, char *argv[]) {
 
   generate_clustered_list_of_points();  //Sequential
   init_uniform_cluster_centers();       //Sequential?
-  // pkmeans(num_points, num_clusters, dims, points, clusters, belongs_to);
-  // init_grid();
-  //calculate_grid_closest_cluster();
+                                        // pkmeans(num_points, num_clusters, dims, points, clusters, belongs_to);
+                                        // init_grid();
+                                        //calculate_grid_closest_cluster();
 
+  // print_cluster_centers(clusters);
+  mt1 = omp_get_wtime();
   do {
     calc_belongs_to(points, clusters, belongs_to);  //Parallel
-  } while (move_cluster_centers() != 0);            //Parallel?
+    // pcalc_belongs_to();
+  } while (move_cluster_centers() != 0);  //Parallel?
 
-  // mt1 = omp_get_wtime();
+  mt2 = omp_get_wtime();
 
   // do {
   //   pcalc_belongs_to();                    //Parallel
   // } while (pmove_cluster_centers() != 0);  //Parallel?
 
-  // printf("TEST\n");
-  // mt2 = omp_get_wtime();
+  printf("TEST\n");
 
   // print_belongs_to();
   print_cluster_centers(clusters);
@@ -188,96 +190,98 @@ void pkmeans(int num_points, int num_clusters, int dims, Point *points, Point *c
 */
 
 void pcalc_belongs_to() {
-  int i, j, k, cluster;
-  int num_threads = omp_get_num_threads();
+  int i, j, cluster;
+
   //printf("Num threads = %d\n", num_threads);
-  omp_set_num_threads(4);
+  // omp_set_num_threads(4);
+  int num_threads = omp_get_max_threads();
   long double dist, tmpdist;
-#pragma omp parallel
-  {
-//printf("Belongs To\n");
-#pragma omp parallel for schedule(static, num_points / num_threads) private(dist, tmpdist, cluster)
-    for (i = 0; i < num_points; i++) {
-      dist = RAND_MAX;
-      //printf("Thread %d of %d\n", omp_get_thread_num, omp_get_num_threads);
-      cluster = -1;
-      for (j = 0; j < num_clusters; j++) {
-        tmpdist = calc_dist(points[i], clusters[j]);
-        if (tmpdist < dist) {
-          dist = tmpdist;
-          cluster = j;
-        }
+#pragma omp parallel for schedule(static, num_points / num_threads) private(i, j, dist, tmpdist, cluster)
+  for (i = 0; i < num_points; i++) {
+    printf("Thread %d, i = %d\n", omp_get_thread_num(), i);
+    dist = RAND_MAX;
+    cluster = -1;
+    for (j = 0; j < num_clusters; j++) {
+      tmpdist = calc_dist(points[i], clusters[j]);
+      if (tmpdist < dist) {
+        dist = tmpdist;
+        cluster = j;
       }
-      belongs_to[i] = cluster;
     }
+    belongs_to[i] = cluster;
   }
 }
 
 int pmove_cluster_centers() {
+  // printf("Pmove\n");
   //int num_threads = omp_get_num_threads();
   //int num_threads = 4;
   //printf("Num_threads = %d\n", num_threads);
-  int mv;
+  // int mv;
+
+  int num_threads = omp_get_max_threads();
+  // printf("Num_threads = %d\n", num_threads);
+
   int moved = 0;
+  int counts[num_threads][num_clusters];
+  long double sum_dims[num_threads][num_clusters][dims];
 
-#pragma omp parallel
+  long double new_coord;
+
+  int i, j, k, cluster;
+
+#pragma omp parallel private(i, j, cluster)
   {
-    int num_threads = omp_get_num_threads();
     int thread_id = omp_get_thread_num();
-    int i, j, cluster;
-    //  int thread_id;
-
-    int counts[num_clusters];
-    long double sum_dims[num_clusters][dims];
-    long double new_coord;
-    //  int num_threads;
-
-    //printf("Thread id = %d of %d\n", thread_id, num_threads);
-    //printf("Num threads = %d\n", num_threads);
-    // Initializing
-    //#pragma omp barrier
-
-    //printf("Initializing\n");
-//#pragma omp for private(i, j) schedule(static, num_clusters/num_threads)
-#pragma omp master
+    // printf("Thread id = %d\n", thread_id);
     for (i = 0; i < num_clusters; i++) {
-      counts[i] = 0;
+      counts[thread_id][i] = 0;
       for (j = 0; j < dims; j++) {
-        sum_dims[i][j] = 0;
+        sum_dims[thread_id][i][j] = 0;
       }
     }
-
-    //printf("sums\n");
+    // printf("Initialized: %d\n", thread_id);
 #pragma omp barrier
-//printf("num_points/Num_threads%d\n", num_points/num_threads);
-// Calculating sums TODO FIX
-#pragma omp for private(cluster, i, j) schedule(static, num_points / num_threads)
+#pragma omp for schedule(static, num_points / omp_get_num_threads())  //private(i, j, cluster)
     for (i = 0; i < num_points; i++) {
-      cluster = belongs_to[i];
-      counts[cluster]++;
-      for (j = 0; j < dims; j++) {
-        sum_dims[cluster][j] += points[i].coords[j];
-      }
-    }
-#pragma omp barrier
-//printf("moving centers\n");
-//#pragma omp for private(i, j, new_coord)
-#pragma omp master
-    for (i = 0; i < num_clusters; i++) {
-      if (counts[i] == 0) {
-        continue;
-      }
-
-      for (j = 0; j < dims; j++) {
-        new_coord = sum_dims[i][j] / (long double)counts[i];
-
-        if (clusters[i].coords[j] != new_coord) {
-          moved = 1;
+      {
+        // printf("thread %d, i=%d of %d\n", thread_id, i, num_points);
+        cluster = belongs_to[i];
+        counts[thread_id][cluster]++;
+        for (j = 0; j < dims; j++) {
+          sum_dims[thread_id][cluster][j] += points[i].coords[j];
         }
-
-        clusters[i].coords[j] = new_coord;
       }
     }
   }
+  // printf("Calculated\n");
+
+  for (i = 1; i < num_threads; i++) {
+    for (j = 0; j < num_clusters; j++) {
+      counts[0][j] += counts[i][j];
+      for (k = 0; k < dims; k++) {
+        sum_dims[0][j][k] += sum_dims[i][j][k];
+      }
+    }
+  }
+
+  for (i = 0; i < num_clusters; i++) {
+    if (counts[0][i] == 0) {
+      continue;
+    }
+
+    for (j = 0; j < dims; j++) {
+      new_coord = sum_dims[0][i][j] / (long double)counts[0][i];
+
+      if (clusters[i].coords[j] != new_coord)
+        moved = 1;
+
+      // if (isnan(new_coord)) {
+      //   printf("Is bad :( sum_div: %Lf counts: %d\n", sum_dims[0][i][j], counts[0][i]);
+      // }
+      clusters[i].coords[j] = new_coord;
+    }
+  }
+
   return moved;
 }
