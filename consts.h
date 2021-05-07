@@ -3,8 +3,8 @@
 
 #define num_points 50000
 #define num_clusters 20
-#define dims 15
-#define max_num 50000  // no more than 5000000
+#define dims 3
+#define max_num 25000
 #define decimal 100
 #define num_cells 3
 

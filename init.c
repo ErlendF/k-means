@@ -30,13 +30,13 @@ void generate_clustered_list_of_points(Point *points) {
       printf("New cluster size: %d\n", cluster_size);
       for (k = 0; k < dims; k++) {
         cluster_offsets[k] =
-            (long double)(rand() % max_num) / decimal;
+            (long double)(rand() % (max_num)) / decimal;
       }
     }
 
     for (k = 0; k < dims; k++) {
       points[i].coords[k] =
-          (((long double)(rand() % (num_points * decimal)) / decimal) + (long double)cluster_offsets[k]);
+          (((long double)(rand() % (max_num * decimal)) / decimal) + (long double)cluster_offsets[k]);
     }
   }
 

@@ -1,12 +1,10 @@
 #include "main.h"
 
-// int *cell_clust;  // The cluster closest to the cell
-int *cell_valid;  // 1 if there is only one cluster closest to the cell, 0 otherwise
+int *cell_closest_cluster;  // -1 if invalid
 int *grid_points_closest;
-int tot_num_cells;
+int num_grid_cells;
 int num_cell_corners;
 double mt1, mt2;  //timing variables
-Point *grid_corners;
 
 Point points[num_points];
 Point clusters[num_clusters];
@@ -16,7 +14,12 @@ int belongs_to[num_points];
 
 int main(int argc, char *argv[]) {
   // srand(time(NULL));    // set rand seed
-
+  num_grid_cells = (int)(pow(num_cells, dims) + 0.5);
+  int num_corners = (int)(pow(2, dims) + 0.5);
+  Point grid_corners[num_grid_cells][num_corners];
+  // init_grid(num_grid_cells, cell_closest_cluster, grid_points_closest, grid_corners);
+  find_corners();
+  return 0;
   char parallel = 'b';
 
   if (argc > 1) {
@@ -25,6 +28,8 @@ int main(int argc, char *argv[]) {
 
   generate_clustered_list_of_points(points);
   init_uniform_cluster_centers(clusters);
+
+  return 0;
 
   int i, j;
   if (parallel == 'b') {
@@ -74,8 +79,8 @@ int main(int argc, char *argv[]) {
   print_cluster_centers(clusters);
   print_measures(points, clusters, belongs_to);
 
-  // write_points_to_file(points);
-  // write_clusters_to_file(clusters);
+  write_points_to_file(points);
+  write_clusters_to_file(clusters);
 
   printf("Clusters found in %f seconds\n", mt2 - mt1);
 }
