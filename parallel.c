@@ -1,37 +1,20 @@
-/*
-Number of points,
-Number of clusters,
-List of all points,
-list of where points belong to,
-List to store distances,
-void calc_belongs_to();
 
-*/
-void pcalc_belongs_to();
-int pmove_cluster_centers();
+#include "parallel.h"
 
-void pkmeans(int num_points, int num_clusters, int dims, Point *points, Point *clusters, int *belongs_to) {
-  int num_threads = omp_get_num_threads();
-  int thread_id = omp_get_thread_num();
-  do {
-    pcalc_belongs_to(num_points, num_clusters, belongs_to, dims, clusters);  //Parallel
-  } while (pmove_cluster_centers(num_clusters, dims, num_points, belongs_to, points) != 0);
-}
+void pcalc_belongs_to(Point *points, Point *clusters, int *belongs_to) {
+  int i, j, cluster;
 
-void pcalc_belongs_to(int num_points, int num_clusters, int *belongs_to, int dims, Point *clusters) {
-  int i, j, k, cluster;
+  //printf("Num threads = %d\n", num_threads);
+  // omp_set_num_threads(4);
+  int num_threads = omp_get_max_threads();
   long double dist, tmpdist;
-#pragma omp parallel for
+#pragma omp parallel for schedule(static, num_points / num_threads) private(i, j, dist, tmpdist, cluster)
   for (i = 0; i < num_points; i++) {
+    // printf("Thread %d, i = %d\n", omp_get_thread_num(), i);
     dist = RAND_MAX;
     cluster = -1;
     for (j = 0; j < num_clusters; j++) {
-      tmpdist = 0;
-      Point point = points[i];
-      Point clust = clusters[j];
-      for (k = 0; i < dims; i++) {
-        tmpdist += pow(point.coords[i] - clust.coords[i], 2);  // Ignored sqrt as we are comparing relative distances
-      }
+      tmpdist = calc_dist(points[i], clusters[j]);
       if (tmpdist < dist) {
         dist = tmpdist;
         cluster = j;
@@ -41,45 +24,59 @@ void pcalc_belongs_to(int num_points, int num_clusters, int *belongs_to, int dim
   }
 }
 
-int pmove_cluster_centers(int num_clusters, int dims, int num_points, int *belongs_to, Point *points) {
-  int i, j, cluster;
+int pmove_cluster_centers(Point *points, Point *clusters, int *belongs_to) {
+  int num_threads = omp_get_max_threads();
+
   int moved = 0;
-  int counts[num_clusters];
-  long double sum_dims[num_clusters][dims];
+  int counts[num_threads][num_clusters];
+  long double sum_dims[num_threads][num_clusters][dims];
+
   long double new_coord;
 
-  // Initializing
-#pragma omp parallel for
-  for (i = 0; i < num_clusters; i++) {
-    counts[i] = 0;
-    for (j = 0; j < dims; j++) {
-      sum_dims[i][j] = 0;
-    }
-  }
-#pragma omp barrier
-  // Calculating sums
-#pragma omp parallel for
-  for (i = 0; i < num_points; i++) {
-    cluster = belongs_to[i];
-    counts[cluster]++;
-    for (j = 0; j < dims; j++) {
-      sum_dims[cluster][j] += points[i].coords[j];
-    }
-  }
-#pragma omp barrier
+  int i, j, k, cluster;
 
-#pragma omp parallel for
+#pragma omp parallel private(i, j, cluster)
+  {
+    int thread_id = omp_get_thread_num();
+    for (i = 0; i < num_clusters; i++) {
+      counts[thread_id][i] = 0;
+      for (j = 0; j < dims; j++) {
+        sum_dims[thread_id][i][j] = 0;
+      }
+    }
+#pragma omp barrier
+#pragma omp for schedule(static, num_points / omp_get_num_threads())  //private(i, j, cluster)
+    for (i = 0; i < num_points; i++) {
+      {
+        // printf("thread %d, i=%d\n", thread_id, i);
+        cluster = belongs_to[i];
+        counts[thread_id][cluster]++;
+        for (j = 0; j < dims; j++) {
+          sum_dims[thread_id][cluster][j] += points[i].coords[j];
+        }
+      }
+    }
+  }
+
+  for (i = 1; i < num_threads; i++) {
+    for (j = 0; j < num_clusters; j++) {
+      counts[0][j] += counts[i][j];
+      for (k = 0; k < dims; k++) {
+        sum_dims[0][j][k] += sum_dims[i][j][k];
+      }
+    }
+  }
+
   for (i = 0; i < num_clusters; i++) {
-    if (counts[i] == 0) {
+    if (counts[0][i] == 0) {
       continue;
     }
 
     for (j = 0; j < dims; j++) {
-      new_coord = sum_dims[i][j] / (long double)counts[i];
+      new_coord = sum_dims[0][i][j] / (long double)counts[0][i];
 
-      if (clusters[i].coords[j] != new_coord) {
+      if (clusters[i].coords[j] != new_coord)
         moved = 1;
-      }
 
       clusters[i].coords[j] = new_coord;
     }
