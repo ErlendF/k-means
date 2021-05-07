@@ -4,7 +4,7 @@
 
 Compile:
 ```
-gcc main.c output.c utils.c grid.c -lm -fopenmp -O2
+gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c -lm -fopenmp -O2
 ```
 
 Set threads:

@@ -16,10 +16,10 @@ int belongs_to[num_points];
 int main(int argc, char *argv[]) {
   // srand(time(NULL));    // set rand seed
 
-  char *parallel = "s";
+  char parallel = 's';
 
   if (argc > 1) {
-    parallel = argv[1];
+    parallel = *argv[1];
   }
 
   generate_clustered_list_of_points(points);
@@ -27,7 +27,8 @@ int main(int argc, char *argv[]) {
 
   // print_cluster_centers(clusters);
   mt1 = omp_get_wtime();
-  if (parallel == "p") {
+  if (parallel == 'p') {
+    printf("Running parallel!\n");
     do {
       pcalc_belongs_to(points, clusters, belongs_to);
       // pcalc_belongs_to();

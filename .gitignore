@@ -4,3 +4,4 @@ funnet/*
 .vscode/*
 points.csv
 clusters.csv
+k-means
