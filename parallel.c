@@ -27,9 +27,10 @@ void pcalc_belongs_to(Point *points, Point *clusters, int *belongs_to) {
 int pmove_cluster_centers(Point *points, Point *clusters, int *belongs_to) {
   int num_threads = omp_get_max_threads();
 
-  int moved = 0;
   int counts[num_threads][num_clusters];
   long double sum_dims[num_threads][num_clusters][dims];
+
+  int moved = 0;
 
   long double new_coord;
 
@@ -44,11 +45,11 @@ int pmove_cluster_centers(Point *points, Point *clusters, int *belongs_to) {
         sum_dims[thread_id][i][j] = 0;
       }
     }
+
 #pragma omp barrier
-#pragma omp for schedule(static, num_points / omp_get_num_threads())  //private(i, j, cluster)
+#pragma omp for  //schedule(static, num_points / omp_get_num_threads())
     for (i = 0; i < num_points; i++) {
       {
-        // printf("thread %d, i=%d\n", thread_id, i);
         cluster = belongs_to[i];
         counts[thread_id][cluster]++;
         for (j = 0; j < dims; j++) {

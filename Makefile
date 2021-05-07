@@ -13,5 +13,8 @@ sequential: build
 both: build
 	./k-means
 
+gprof:
+	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c -pg -lm -fopenmp -O2 -o k-means && ./k-means && gprof a.out gmon.out > myprog_output
+
 cleanup:
 	rm ./k-means

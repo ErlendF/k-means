@@ -9,10 +9,11 @@ make run
 make both
 make parallel
 make sequential
+make gprof
 make cleanup
 ```
 
-make both and make run do the same thing: runs both the sequential and parallel version.
+"make both" and "make run" do the same thing: runs both the sequential and parallel version.
 
 Set threads:
 ```

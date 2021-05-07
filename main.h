@@ -1,4 +1,5 @@
 
+#include <omp.h>
 #include <time.h>
 
 #include "brute_force.h"

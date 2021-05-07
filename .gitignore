@@ -5,3 +5,5 @@ funnet/*
 points.csv
 clusters.csv
 k-means
+gmon.out
+myprog_output

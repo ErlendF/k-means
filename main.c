@@ -10,6 +10,7 @@ Point *grid_corners;
 
 Point points[num_points];
 Point clusters[num_clusters];
+Point clusters_copy[num_clusters];
 
 int belongs_to[num_points];
 
@@ -25,13 +26,22 @@ int main(int argc, char *argv[]) {
   generate_clustered_list_of_points(points);
   init_uniform_cluster_centers(clusters);
 
+  int i, j;
+  if (parallel == 'b') {
+    for (i = 0; i < num_clusters; i++) {
+      for (j = 0; j < dims; j++) {
+        clusters_copy[i].coords[j] = clusters[i].coords[j];
+      }
+    }
+  }
+
   // print_cluster_centers(clusters);
   mt1 = omp_get_wtime();
   if (parallel == 'p') {
     printf("Running parallel with %d threads!\n", omp_get_max_threads());
     do {
       pcalc_belongs_to(points, clusters, belongs_to);
-    } while (move_cluster_centers(points, clusters, belongs_to) != 0);
+    } while (pmove_cluster_centers(points, clusters, belongs_to) != 0);
   } else if (parallel == 's') {
     printf("\n\nStarting sequential run..\n");
     do {
@@ -50,10 +60,10 @@ int main(int argc, char *argv[]) {
     printf("\n\nStarting parallel run with %d threads..\n", omp_get_max_threads());
     mt1 = omp_get_wtime();
     do {
-      pcalc_belongs_to(points, clusters, belongs_to);
-    } while (pmove_cluster_centers(points, clusters, belongs_to) != 0);
+      pcalc_belongs_to(points, clusters_copy, belongs_to);
+    } while (pmove_cluster_centers(points, clusters_copy, belongs_to) != 0);
     mt2 = omp_get_wtime();
-    print_measures(points, clusters, belongs_to);
+    print_measures(points, clusters_copy, belongs_to);
     printf("Finished running in parallel in %f seconds\n", mt2 - mt1);
 
     return 0;
