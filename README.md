@@ -2,10 +2,17 @@
 
 ## Usage
 
-Compile:
+Commands:
 ```
-gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c -lm -fopenmp -O2
+make build
+make run
+make both
+make parallel
+make sequential
+make cleanup
 ```
+
+make both and make run do the same thing: runs both the sequential and parallel version.
 
 Set threads:
 ```

@@ -16,7 +16,7 @@ int belongs_to[num_points];
 int main(int argc, char *argv[]) {
   // srand(time(NULL));    // set rand seed
 
-  char parallel = 's';
+  char parallel = 'b';
 
   if (argc > 1) {
     parallel = *argv[1];
@@ -28,28 +28,44 @@ int main(int argc, char *argv[]) {
   // print_cluster_centers(clusters);
   mt1 = omp_get_wtime();
   if (parallel == 'p') {
-    printf("Running parallel!\n");
+    printf("Running parallel with %d threads!\n", omp_get_max_threads());
     do {
       pcalc_belongs_to(points, clusters, belongs_to);
-      // pcalc_belongs_to();
-    } while (pmove_cluster_centers(points, clusters, belongs_to) != 0);
-  } else {
+    } while (move_cluster_centers(points, clusters, belongs_to) != 0);
+  } else if (parallel == 's') {
+    printf("\n\nStarting sequential run..\n");
     do {
       calc_belongs_to(points, clusters, belongs_to);
-      // pcalc_belongs_to();
     } while (move_cluster_centers(points, clusters, belongs_to) != 0);
+  } else {
+    printf("Running both modes, starting sequential");
+    mt1 = omp_get_wtime();
+    do {
+      calc_belongs_to(points, clusters, belongs_to);
+    } while (move_cluster_centers(points, clusters, belongs_to) != 0);
+    mt2 = omp_get_wtime();
+    print_measures(points, clusters, belongs_to);
+    printf("Finished running sequentially in %f seconds\n", mt2 - mt1);
+
+    printf("\n\nStarting parallel run with %d threads..\n", omp_get_max_threads());
+    mt1 = omp_get_wtime();
+    do {
+      pcalc_belongs_to(points, clusters, belongs_to);
+    } while (pmove_cluster_centers(points, clusters, belongs_to) != 0);
+    mt2 = omp_get_wtime();
+    print_measures(points, clusters, belongs_to);
+    printf("Finished running in parallel in %f seconds\n", mt2 - mt1);
+
+    return 0;
   }
 
   mt2 = omp_get_wtime();
 
-  printf("TEST\n");
-
-  // print_belongs_to();
   print_cluster_centers(clusters);
   print_measures(points, clusters, belongs_to);
 
-  write_points_to_file(points);
-  write_clusters_to_file(clusters);
+  // write_points_to_file(points);
+  // write_clusters_to_file(clusters);
 
   printf("Clusters found in %f seconds\n", mt2 - mt1);
 }

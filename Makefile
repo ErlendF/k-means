@@ -3,3 +3,15 @@ build:
 
 run: build
 	./k-means
+
+parallel: build
+	./k-means p
+
+sequential: build
+	./k-means s
+
+both: build
+	./k-means
+
+cleanup:
+	rm ./k-means
