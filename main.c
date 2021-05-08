@@ -1,7 +1,7 @@
 #include "main.h"
 
-#define test_iter 1
-#define thread_iter 3
+#define test_iter 3
+#define thread_iter 5
 
 int num_grid_cells;
 int num_cell_corners;
@@ -19,22 +19,16 @@ void parallel_grid();
 int test;
 
 int main(int argc, char *argv[]) {
-  int i, j;
   generate_clustered_list_of_points(points);
   init_uniform_cluster_centers(clusters);
-  // print_cluster_centers(clusters);
 
+  int i, j;
   int parallel = 0;
   int sequential = 0;
   int grid_mode = 0;
   int bruteforce = 0;
 
   test = 0;
-  // int kd =0;
-
-  // if (argc > 1) {
-  //   parallel = *argv[1];
-  // }
 
   for (i = 1; i < argc; i++) {
     switch (*argv[i]) {
@@ -76,7 +70,7 @@ int main(int argc, char *argv[]) {
       sequential_grid();
     }
     int max_threads = omp_get_max_threads();
-    for (i = 0; i <= max_threads; i += 1) {
+    for (i = 0; i <= max_threads; i += thread_iter) {
       for (j = 0; j < test_iter; j++) {
         num_threads = i;
         if (i == 0) {
