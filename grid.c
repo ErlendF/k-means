@@ -9,7 +9,7 @@ void init_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(int
 
   if (dims > 3) {
     printf("Max dims for grid = 3, you set %d\n", dims);
-    return;
+    exit(1);
   }
 
   for (i = 0; i < num_cell_corners; i++) {

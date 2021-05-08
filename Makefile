@@ -22,6 +22,9 @@ grid_pl: build
 grid_both: build
 	./k-means p s g
 
+test: build
+	./k-means t
+
 gprof:
 	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c pgrid.c -pg -lm -fopenmp -O2 -o k-means && ./k-means p g && gprof k-means gmon.out > myprog_output
 

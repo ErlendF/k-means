@@ -108,3 +108,16 @@ void write_clusters_to_file(Point* clusters) {
     }
   }
 }
+
+void init_performance_file() {
+  FILE* fp = fopen(performance_file, "w+");
+  fprintf(fp, "mode,algorithm,time,num_points,num_clusters,dims,num_cells\n");
+  fclose(fp);
+}
+
+void write_performance(int num_threads, char* mode, char* alg, double time) {
+  FILE* fp = fopen(performance_file, "a");
+
+  fprintf(fp, "%s,%s,%d,%f,%d,%d,%d,%d\n", mode, alg, num_threads, time, num_points, num_clusters, dims, num_cells);
+  fclose(fp);
+}

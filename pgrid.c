@@ -11,7 +11,7 @@ void pinit_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(in
 
   if (dims > 3) {
     printf("Max dims for grid = 3, you set %d\n", dims);
-    return;
+    exit(1);
   }
 
 #pragma omp parallel
@@ -116,7 +116,7 @@ void pgrid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, 
       // printf("Grid point (%Lf, %Lf) belongs to cluster %d\n", grid[i].coords[0], grid[i].coords[1], cluster);
     }
 #pragma omp barrier
-#pragma omp parallel for private(i, j, prev_value) schedule(static, num_cell_corners / omp_get_max_threads())
+#pragma omp parallel for private(i, j, prev_value) schedule(static, num_grid_cells / omp_get_max_threads())
     for (i = 0; i < num_grid_cells; i++) {
       for (j = 0; j < num_corners; j++) {
         if (j == 0) {
