@@ -101,7 +101,7 @@ void pgrid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, 
   long double dist, tmpdist;
 #pragma omp parallel
   {
-#pragma omp for private(i, j, k, dist, tmpdist) schedule(static, num_cell_corners / omp_get_max_threads())
+#pragma omp parallel for private(i, j, k, dist, tmpdist) schedule(static, num_cell_corners / omp_get_max_threads())
     for (i = 0; i < num_cell_corners; i++) {
       dist = RAND_MAX;
       cluster = -1;
@@ -115,7 +115,8 @@ void pgrid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, 
       grid_points_closest[i] = cluster;
       // printf("Grid point (%Lf, %Lf) belongs to cluster %d\n", grid[i].coords[0], grid[i].coords[1], cluster);
     }
-#pragma omp for private(i, j, prev_value) schedule(static, num_grid_cells / omp_get_max_threads())
+#pragma omp barrier
+#pragma omp parallel for private(i, j, prev_value) schedule(static, num_cell_corners / omp_get_max_threads())
     for (i = 0; i < num_grid_cells; i++) {
       for (j = 0; j < num_corners; j++) {
         if (j == 0) {

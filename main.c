@@ -181,7 +181,7 @@ void parallel_grid() {
   mt3 = omp_get_wtime();
 
   do {
-    pgrid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
+    grid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
     pgrid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
   } while (pmove_cluster_centers(points, clusters_copy, belongs_to) != 0);
   mt2 = omp_get_wtime();
