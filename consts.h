@@ -2,7 +2,7 @@
 #define CONSTS_H
 
 #define num_points 10
-#define num_clusters 20
+#define num_clusters 3
 #define dims 2
 #define max_num 25000
 #define decimal 100

@@ -12,10 +12,11 @@ int belongs_to[num_points];
 int belongs_to_cell[num_points];
 
 int main(int argc, char *argv[]) {
+  int i, j;
   generate_clustered_list_of_points(points);
   init_uniform_cluster_centers(clusters);
+  print_cluster_centers(clusters);
 
-  int i, j;
   num_grid_cells = (int)(pow(num_cells, dims) + 0.5);
   num_cell_corners = (int)(pow(num_cells + 1, dims) + 0.5);
   int num_corners = (int)(pow(2, dims) + 0.5);
@@ -28,10 +29,11 @@ int main(int argc, char *argv[]) {
   init_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points, belongs_to_cell);
 
   do {
-    calc_cell_closest_cluster(num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
+    grid_closest_cluster(grid, clusters, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
+    grid_calc_belongs_to(points, clusters, belongs_to, cell_closest_cluster, belongs_to_cell);
   } while (move_cluster_centers(points, clusters, belongs_to) != 1);
 
-  print_cluster_centers(clusters);
+  // print_cluster_centers(clusters);
   print_measures(points, clusters, belongs_to);
 
   return 0;
@@ -47,7 +49,7 @@ int main(int argc, char *argv[]) {
     parallel = *argv[1];
   }
 
-  return 0;
+  // return 0;
 
   if (parallel == 'b') {
     for (i = 0; i < num_clusters; i++) {
@@ -71,7 +73,6 @@ int main(int argc, char *argv[]) {
     } while (move_cluster_centers(points, clusters, belongs_to) != 0);
   } else {
     printf("Running both modes, starting sequential");
-    mt1 = omp_get_wtime();
     do {
       calc_belongs_to(points, clusters, belongs_to);
     } while (move_cluster_centers(points, clusters, belongs_to) != 0);

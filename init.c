@@ -46,7 +46,7 @@ void generate_clustered_list_of_points(Point *points) {
 void init_uniform_cluster_centers(Point *clusters) {
   int i, j;
   for (i = 0; i < num_clusters; i++) {
-    int pt = rand() % num_points;
+    // int pt = rand() % num_points;
     for (j = 0; j < dims; j++) {
       clusters[i].coords[j] = (long double)(rand() % max_num) / decimal;
     }
