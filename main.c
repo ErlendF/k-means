@@ -12,6 +12,7 @@ int belongs_to_cell[num_points];
 void sequential_bruteforce();
 void parallel_bruteforce();
 void sequential_grid();
+void parallel_grid();
 
 int main(int argc, char *argv[]) {
   int i, j;
@@ -49,6 +50,12 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  if (parallel + sequential + grid_mode + bruteforce < 1) {
+    printf("No inputs given, running sequential brute force mode");
+    sequential = 1;
+    bruteforce = 1;
+  }
+
   // printf("parallel=%d, sequential = %d, grid = %d, bruteforce = %d\n", parallel, sequential, grid_mode, bruteforce);
 
   if (grid_mode == 1) {
@@ -56,9 +63,8 @@ int main(int argc, char *argv[]) {
       sequential_grid();
     }
     if (parallel == 1) {
-      // parallel_grid();
+      parallel_grid();
     }
-    // print_cluster_centers(clusters);
   }
   if (bruteforce == 1) {
     if (sequential == 1) {
@@ -133,13 +139,48 @@ void sequential_grid() {
   int grid_points_closest[num_cell_corners];
 
   Point grid[num_cell_corners];
-  init_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points, belongs_to_cell);
 
   mt1 = omp_get_wtime();
+
+  init_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points, belongs_to_cell);
+
   do {
     grid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
     grid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
   } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
+  mt2 = omp_get_wtime();
+  print_measures(points, clusters_copy, belongs_to);
+  printf("Finished running in sequential grid in %f seconds\n", mt2 - mt1);
+}
+
+void parallel_grid() {
+  printf("Running parallel grid mode..\n");
+  Point clusters_copy[num_clusters];
+  int i, j;
+  for (i = 0; i < num_clusters; i++) {
+    for (j = 0; j < dims; j++) {
+      clusters_copy[i].coords[j] = clusters[i].coords[j];
+    }
+  }
+
+  num_grid_cells = (int)(pow(num_cells, dims) + 0.5);
+  num_cell_corners = (int)(pow(num_cells + 1, dims) + 0.5);
+  int num_corners = (int)(pow(2, dims) + 0.5);
+  int grid_corners[num_grid_cells][num_corners];
+
+  int cell_closest_cluster[num_grid_cells];
+  int grid_points_closest[num_cell_corners];
+
+  Point grid[num_cell_corners];
+
+  mt1 = omp_get_wtime();
+
+  pinit_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points, belongs_to_cell);
+
+  do {
+    grid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
+    grid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
+  } while (pmove_cluster_centers(points, clusters_copy, belongs_to) != 0);
   mt2 = omp_get_wtime();
   print_measures(points, clusters_copy, belongs_to);
   printf("Finished running in sequential grid in %f seconds\n", mt2 - mt1);

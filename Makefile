@@ -16,8 +16,11 @@ brute_both: build
 grid_seq: build
 	./k-means s g
 
+grid_pl: build
+	./k-means p g
+
 gprof:
-	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c -pg -lm -fopenmp -O2 -o k-means && ./k-means && gprof a.out gmon.out > myprog_output
+	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c -pg -lm -fopenmp -O2 -o k-means && ./k-means s b && gprof k-means gmon.out > myprog_output
 
 cleanup:
 	rm ./k-means

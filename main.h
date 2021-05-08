@@ -8,4 +8,5 @@
 #include "init.h"
 #include "output.h"
 #include "parallel.h"
+#include "pgrid.h"
 #include "utils.h"
