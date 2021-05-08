@@ -1,9 +1,9 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
-#define num_points 50000
+#define num_points 10
 #define num_clusters 20
-#define dims 3
+#define dims 2
 #define max_num 25000
 #define decimal 100
 #define num_cells 3

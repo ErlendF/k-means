@@ -1,7 +1,5 @@
 #include "main.h"
 
-int *cell_closest_cluster;  // -1 if invalid
-int *grid_points_closest;
 int num_grid_cells;
 int num_cell_corners;
 double mt1, mt2;  //timing variables
@@ -11,18 +9,32 @@ Point clusters[num_clusters];
 Point clusters_copy[num_clusters];
 
 int belongs_to[num_points];
+int belongs_to_cell[num_points];
 
 int main(int argc, char *argv[]) {
+  generate_clustered_list_of_points(points);
+  init_uniform_cluster_centers(clusters);
+
   int i, j;
   num_grid_cells = (int)(pow(num_cells, dims) + 0.5);
   num_cell_corners = (int)(pow(num_cells + 1, dims) + 0.5);
   int num_corners = (int)(pow(2, dims) + 0.5);
   int grid_corners[num_grid_cells][num_corners];
-  Point grid[num_cell_corners];
-  init_grid(num_grid_cells, num_cell_corners, cell_closest_cluster, grid_points_closest, grid_corners, grid);
-  return 0;
-  find_corners(grid_corners);
 
+  int cell_closest_cluster[num_grid_cells];
+  int grid_points_closest[num_cell_corners];
+
+  Point grid[num_cell_corners];
+  init_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points, belongs_to_cell);
+
+  do {
+    calc_cell_closest_cluster(num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
+  } while (move_cluster_centers(points, clusters, belongs_to) != 1);
+
+  print_cluster_centers(clusters);
+  print_measures(points, clusters, belongs_to);
+
+  return 0;
   for (i = 0; i < num_grid_cells; i++) {
     for (j = 0; j < num_corners; j++) {
       printf("Grid_corners[%d][%d]: %d\n", i, j, grid_corners[i][j]);
@@ -34,9 +46,6 @@ int main(int argc, char *argv[]) {
   if (argc > 1) {
     parallel = *argv[1];
   }
-
-  generate_clustered_list_of_points(points);
-  init_uniform_cluster_centers(clusters);
 
   return 0;
 

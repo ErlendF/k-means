@@ -1,6 +1,6 @@
 #include "grid.h"
 
-void init_grid(int num_grid_cells, int num_cell_corners, int *cell_closest_cluster, int *grid_points_closest, int grid_corners[][(int)(pow(2, dims) + 0.5)], Point grid[]) {
+void init_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(int)(pow(2, dims) + 0.5)], Point grid[], Point points[], int belongs_to_cell[]) {
   int i, j, k, h;
   int num_corners = (int)(pow(2, dims) + 0.5);
   long double cell_width = ((long double)max_num * 1.01) / (long double)num_cells;
@@ -8,45 +8,50 @@ void init_grid(int num_grid_cells, int num_cell_corners, int *cell_closest_clust
   find_corners(grid_corners);
   printf("Num grid cells: %d, cell width = %Lf\n", num_grid_cells, cell_width);
 
-  cell_closest_cluster = (int *)malloc(sizeof(int) * num_grid_cells);
-  grid_points_closest = (int *)malloc(sizeof(int) * (int)(pow(num_cells + 1, dims) + 0.5));
+  if (dims > 3) {
+    printf("Max dims for grid = 3, you set %d\n", dims);
+    return;
+  }
 
   for (i = 0; i < num_cell_corners; i++) {
     for (j = 0; j < dims; j++) {
-      grid[i].coords[j] = -1;
+      switch (j) {
+        case 0:
+          grid[i].coords[j] = (long double)(i % (num_cells + 1)) * cell_width;
+          break;
+        case 1:
+          grid[i].coords[j] = (long double)((i / (num_cells + 1)) % (num_cells + 1)) * cell_width;
+          break;
+        case 2:
+          grid[i].coords[j] = (long double)(i / ((num_cells + 1) * (num_cells + 1))) * cell_width;
+          break;
+      }
     }
   }
+  calc_point_cell(num_cell_corners, num_grid_cells, grid, points, belongs_to_cell, grid_corners);
+}
 
-  if (dims >= 3) {
-    for (i = 0; i < num_cell_corners; i++) {
-      grid[i].coords[2] = (long double)(i / ((num_cells + 1) * (num_cells + 1))) * cell_width;
+void calc_point_cell(int num_cell_corners, int num_grid_cells, Point grid[], Point *points, int belongs_to_cell[], int grid_corners[][(int)(pow(2, dims) + 0.5)]) {
+  int i, j, idx;
+  long double cell_width = ((long double)max_num * 1.01) / (long double)num_cells;
+  for (i = 0; i < num_points; i++) {
+    idx = 0;
+    for (j = 0; j < dims; j++) {
+      idx += ((int)points[i].coords[j] / (int)cell_width) * (int)(pow(num_cells, j) + 0.5);
     }
-  }
 
-  if (dims >= 2) {
-    for (i = 0; i < num_cell_corners; i++) {
-      grid[i].coords[1] = (long double)((i / (num_cells + 1)) % (num_cells + 1)) * cell_width;
-    }
-  }
-
-  for (i = 0; i < num_cell_corners; i++) {
-    grid[i].coords[0] = (long double)(i % (num_cells + 1)) * cell_width;
-  }
-
-  for (k = 0; k < num_cell_corners; k++) {
-    printf("Corner[%d], (%Lf, %Lf, %Lf)\n", k, grid[k].coords[0], grid[k].coords[1], grid[k].coords[2]);
+    belongs_to_cell[i] = idx;
   }
 }
 
-void calculate_grid_closest_cluster(int num_cell_corners, int num_grid_cells, int *grid_points_closest, int *cell_valid, Point *grid_corners, Point *clusters) {
+void calculate_grid_closest_cluster(int num_cell_corners, int num_grid_cells, int *grid_points_closest, Point grid[], Point *clusters) {
   int i, j, k, cluster;
   long double dist, tmpdist;
   for (i = 0; i < num_cell_corners; i++) {
     dist = RAND_MAX;
     cluster = -1;
-
     for (j = 0; j < num_clusters; j++) {
-      tmpdist = calc_dist(grid_corners[i], clusters[j]);
+      tmpdist = calc_dist(grid[i], clusters[j]);
       if (tmpdist < dist) {
         dist = tmpdist;
         cluster = j;
@@ -93,5 +98,28 @@ void find_corners(int grid_corners[][(int)(pow(2, dims) + 0.5)]) {
       }
       grid_corners[i][j] = idx;
     }
+  }
+}
+
+void grid_calc_belongs_to(Point *points, Point *clusters, int *belongs_to, int *cell_closest_cluster, int belongs_to_cell[]) {
+  int i, j;
+  long double dist, tmpdist;
+  int cluster;
+  for (i = 0; i < num_points; i++) {
+    if (cell_closest_cluster[belongs_to_cell[i]] != -1) {
+      belongs_to[i] = cell_closest_cluster[belongs_to_cell[i]];
+      continue;
+    }
+
+    dist = RAND_MAX;
+    cluster = -1;
+    for (j = 0; j < num_clusters; j++) {
+      tmpdist = calc_dist(points[i], clusters[j]);
+      if (tmpdist < dist) {
+        dist = tmpdist;
+        cluster = j;
+      }
+    }
+    belongs_to[i] = cluster;
   }
 }
