@@ -6,7 +6,6 @@ void init_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(int
   long double cell_width = ((long double)max_num * 1.01) / (long double)num_cells;
 
   find_corners(grid_corners);
-  printf("Num grid cells: %d, cell width = %Lf\n", num_grid_cells, cell_width);
 
   if (dims > 3) {
     printf("Max dims for grid = 3, you set %d\n", dims);
@@ -75,7 +74,7 @@ void grid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, i
       }
     }
     grid_points_closest[i] = cluster;
-    printf("Grid point (%Lf, %Lf) belongs to cluster %d\n", grid[i].coords[0], grid[i].coords[1], cluster);
+    // printf("Grid point (%Lf, %Lf) belongs to cluster %d\n", grid[i].coords[0], grid[i].coords[1], cluster);
   }
 
   for (i = 0; i < num_grid_cells; i++) {
@@ -89,7 +88,7 @@ void grid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, i
         }
       }
     }
-    printf("Cell %d belongs to %d\n", i, prev_value);
+    // printf("Cell %d belongs to %d\n", i, prev_value);
     cell_closest_cluster[i] = prev_value;
   }
 }

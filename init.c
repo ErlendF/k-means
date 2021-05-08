@@ -27,7 +27,7 @@ void generate_clustered_list_of_points(Point *points) {
     if (cluster_size <= 0) {
       cluster_count++;
       cluster_size = fmax(((rand() % num_points) / 10) + num_points / 100, 5);
-      printf("New cluster size: %d\n", cluster_size);
+      // printf("New cluster size: %d\n", cluster_size);
       for (k = 0; k < dims; k++) {
         cluster_offsets[k] =
             (long double)(rand() % (max_num)) / decimal;
@@ -40,7 +40,7 @@ void generate_clustered_list_of_points(Point *points) {
     }
   }
 
-  printf("Num clusters: %d\n", cluster_count);
+  // printf("Num clusters: %d\n", cluster_count);
 }
 
 void init_uniform_cluster_centers(Point *clusters) {
