@@ -124,6 +124,7 @@ void sequential_grid() {
   printf("Running sequential grid mode..\n");
   Point clusters_copy[num_clusters];
   int i, j;
+  double mt3;
   for (i = 0; i < num_clusters; i++) {
     for (j = 0; j < dims; j++) {
       clusters_copy[i].coords[j] = clusters[i].coords[j];
@@ -143,18 +144,19 @@ void sequential_grid() {
   mt1 = omp_get_wtime();
 
   init_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points, belongs_to_cell);
-
+  mt3 = omp_get_wtime();
   do {
     grid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
     grid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
   } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
   mt2 = omp_get_wtime();
   print_measures(points, clusters_copy, belongs_to);
-  printf("Finished running in sequential grid in %f seconds\n", mt2 - mt1);
+  printf("Finished running in parallel grid in %f seconds, init took %f seconds\n", mt2 - mt1, mt3 - mt1);
 }
 
 void parallel_grid() {
-  printf("Running parallel grid mode..\n");
+  double mt3;
+  printf("Running parallel grid mode with %d threads!\n", omp_get_max_threads());
   Point clusters_copy[num_clusters];
   int i, j;
   for (i = 0; i < num_clusters; i++) {
@@ -176,12 +178,13 @@ void parallel_grid() {
   mt1 = omp_get_wtime();
 
   pinit_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points, belongs_to_cell);
+  mt3 = omp_get_wtime();
 
   do {
-    grid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
-    grid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
+    pgrid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
+    pgrid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
   } while (pmove_cluster_centers(points, clusters_copy, belongs_to) != 0);
   mt2 = omp_get_wtime();
   print_measures(points, clusters_copy, belongs_to);
-  printf("Finished running in sequential grid in %f seconds\n", mt2 - mt1);
+  printf("Finished running in parallel grid in %f seconds, init took %f seconds\n", mt2 - mt1, mt3 - mt1);
 }

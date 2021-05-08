@@ -15,9 +15,8 @@ void pinit_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(in
   }
 
 #pragma omp parallel
-  int num_threads = omp_get_num_threads();
 
-#pragma omp parallel for private(i, j, k, idx, cluster) schedule(static, t_num_cells / num_threads)
+#pragma omp for private(i, j, k, idx, cluster) schedule(static, t_num_cells / omp_get_num_threads())
   for (i = 0; i < t_num_cells; i++) {
     for (j = 0; j < corners; j++) {
       idx = i % cells_sq +                   // 1d
@@ -33,7 +32,7 @@ void pinit_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(in
     }
   }
 
-#pragma omp parallel for private(i, j) schedule(static, num_cell_corners / num_threads)
+#pragma omp for private(i, j) schedule(static, num_cell_corners / omp_get_num_threads())
   for (i = 0; i < num_cell_corners; i++) {
     for (j = 0; j < dims; j++) {
       switch (j) {
@@ -50,7 +49,7 @@ void pinit_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(in
     }
   }
 
-#pragma omp for private(i, j, idx) schedule(static, num_points / num_threads)
+#pragma omp for private(i, j, idx) schedule(static, num_points / omp_get_num_threads())
   for (i = 0; i < num_points; i++) {
     idx = 0;
     for (j = 0; j < dims; j++) {
@@ -100,33 +99,37 @@ void pinit_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(in
 void pgrid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, int num_grid_cells, int num_corners, int *grid_points_closest, int grid_corners[][(int)(pow(2, dims) + 0.5)], int *cell_closest_cluster) {
   int i, j, k, prev_value, cluster;
   long double dist, tmpdist;
-  for (i = 0; i < num_cell_corners; i++) {
-    dist = RAND_MAX;
-    cluster = -1;
-    for (j = 0; j < num_clusters; j++) {
-      tmpdist = calc_dist(grid[i], clusters[j]);
-      if (tmpdist < dist) {
-        dist = tmpdist;
-        cluster = j;
-      }
-    }
-    grid_points_closest[i] = cluster;
-    // printf("Grid point (%Lf, %Lf) belongs to cluster %d\n", grid[i].coords[0], grid[i].coords[1], cluster);
-  }
-
-  for (i = 0; i < num_grid_cells; i++) {
-    for (j = 0; j < num_corners; j++) {
-      if (j == 0) {
-        prev_value = grid_points_closest[grid_corners[i][j]];
-      } else {
-        if (grid_points_closest[grid_corners[i][j]] != prev_value) {
-          prev_value = -1;
-          break;
+#pragma omp parallel
+  {
+#pragma omp for private(i, j, k, dist, tmpdist) schedule(static, num_cell_corners / omp_get_max_threads())
+    for (i = 0; i < num_cell_corners; i++) {
+      dist = RAND_MAX;
+      cluster = -1;
+      for (j = 0; j < num_clusters; j++) {
+        tmpdist = calc_dist(grid[i], clusters[j]);
+        if (tmpdist < dist) {
+          dist = tmpdist;
+          cluster = j;
         }
       }
+      grid_points_closest[i] = cluster;
+      // printf("Grid point (%Lf, %Lf) belongs to cluster %d\n", grid[i].coords[0], grid[i].coords[1], cluster);
     }
-    // printf("Cell %d belongs to %d\n", i, prev_value);
-    cell_closest_cluster[i] = prev_value;
+#pragma omp for private(i, j, prev_value) schedule(static, num_grid_cells / omp_get_max_threads())
+    for (i = 0; i < num_grid_cells; i++) {
+      for (j = 0; j < num_corners; j++) {
+        if (j == 0) {
+          prev_value = grid_points_closest[grid_corners[i][j]];
+        } else {
+          if (grid_points_closest[grid_corners[i][j]] != prev_value) {
+            prev_value = -1;
+            break;
+          }
+        }
+      }
+      // printf("Cell %d belongs to %d\n", i, prev_value);
+      cell_closest_cluster[i] = prev_value;
+    }
   }
 }
 
@@ -134,6 +137,7 @@ void pgrid_calc_belongs_to(Point *points, Point *clusters, int *belongs_to, int 
   int i, j;
   long double dist, tmpdist;
   int cluster;
+#pragma omp parallel for private(i, j, dist, tmpdist, cluster)
   for (i = 0; i < num_points; i++) {
     if (cell_closest_cluster[belongs_to_cell[i]] != -1) {
       belongs_to[i] = cell_closest_cluster[belongs_to_cell[i]];
