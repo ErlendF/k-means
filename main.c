@@ -13,12 +13,21 @@ Point clusters_copy[num_clusters];
 int belongs_to[num_points];
 
 int main(int argc, char *argv[]) {
-  // srand(time(NULL));    // set rand seed
+  int i, j;
   num_grid_cells = (int)(pow(num_cells, dims) + 0.5);
+  num_cell_corners = (int)(pow(num_cells + 1, dims) + 0.5);
   int num_corners = (int)(pow(2, dims) + 0.5);
-  Point grid_corners[num_grid_cells][num_corners];
-  // init_grid(num_grid_cells, cell_closest_cluster, grid_points_closest, grid_corners);
-  find_corners();
+  int grid_corners[num_grid_cells][num_corners];
+  Point grid[num_cell_corners];
+  init_grid(num_grid_cells, num_cell_corners, cell_closest_cluster, grid_points_closest, grid_corners, grid);
+  return 0;
+  find_corners(grid_corners);
+
+  for (i = 0; i < num_grid_cells; i++) {
+    for (j = 0; j < num_corners; j++) {
+      printf("Grid_corners[%d][%d]: %d\n", i, j, grid_corners[i][j]);
+    }
+  }
   return 0;
   char parallel = 'b';
 
@@ -31,7 +40,6 @@ int main(int argc, char *argv[]) {
 
   return 0;
 
-  int i, j;
   if (parallel == 'b') {
     for (i = 0; i < num_clusters; i++) {
       for (j = 0; j < dims; j++) {
