@@ -67,7 +67,9 @@ int main(int argc, char *argv[]) {
     int num_threads;
     for (i = 0; i < test_iter; i++) {
       sequential_bruteforce();
-      sequential_grid();
+      if (dims <= 3) {
+        sequential_grid();
+      }
     }
     int max_threads = omp_get_max_threads();
     for (i = 0; i <= max_threads; i += thread_iter) {
@@ -78,7 +80,9 @@ int main(int argc, char *argv[]) {
         }
         omp_set_num_threads(num_threads);
         parallel_bruteforce();
-        parallel_grid();
+        if (dims <= 3) {
+          parallel_grid();
+        }
       }
     }
     if (num_threads != omp_get_max_threads()) {
@@ -86,7 +90,9 @@ int main(int argc, char *argv[]) {
         num_threads = omp_get_max_threads();
         omp_set_num_threads(num_threads);
         parallel_bruteforce();
-        parallel_grid();
+        if (dims <= 3) {
+          parallel_grid();
+        }
       }
     }
   } else {
