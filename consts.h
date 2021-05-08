@@ -1,11 +1,11 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
-#define num_points 50000
-#define num_clusters 20
-#define dims 15
-#define max_num 50000  // no more than 5000000
-#define decimal 100
+#define num_points 5000
+#define num_clusters 40000
+#define dims 4
+#define max_num 500000  // no more than 5000000
+#define decimal 10
 #define num_cells 3
 
 #define points_file "points.csv"
