@@ -4,14 +4,17 @@ build:
 run: build
 	./k-means
 
-parallel: build
-	./k-means p
+brute_pl: build
+	./k-means p b
 
-sequential: build
-	./k-means s
+brute_seq: build
+	./k-means s b
 
-both: build
-	./k-means
+brute_both: build
+	./k-means b p s
+
+grid_seq: build
+	./k-means s g
 
 gprof:
 	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c -pg -lm -fopenmp -O2 -o k-means && ./k-means && gprof a.out gmon.out > myprog_output
