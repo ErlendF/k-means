@@ -1,5 +1,5 @@
 
-#include "kd_tree.h"
+#include "KD_tree.h"
 int count = 0;  // Used to count how many calls to search_kd_tree there is.
 /**
  * Information of the best is stored in the "best" value sent in.
@@ -44,20 +44,6 @@ void search_kd_tree_help(Node root, Point search_from, ClusterDist* best) {
 }
 
 int curr_dim = 0;  // Used in qsort to decide what dim we are looking at.
-
-Node* build_kd_tree(Point* clusterPoints) {
-  Cluster clusters[num_clusters];
-  int i;
-
-  for (i = 0; i < num_clusters; i++) {
-    Cluster current;
-    current.ID = i;
-    current.point = clusterPoints[i];
-    clusters[i] = current;
-  }
-
-  return build_kd_tree_helper(clusters, num_clusters, 0);
-}
 
 Node* build_kd_tree(Point* clusterPoints) {
   Cluster clusters[num_clusters];
@@ -142,48 +128,6 @@ int compare(const void* a, const void* b) {
   else
     return 1;
 }
-
-// int main() {
-//   Point clusters[num_clusters];
-//   init_uniform_cluster_centers(clusters);
-//   // print_cluster_centers(clusters);
-//   Node root = build_kd_tree(clusters);
-//   // display_kd_tree(root);
-//   Point target;
-//   int i, j;
-//   for (i = 0; i < dims; i++) {
-//     target.coords[i] = 323;
-//   }
-
-//   ClusterDist best;
-
-//   best.distance = RAND_MAX;
-
-//   count = 0;
-
-//   search_kd_tree(root, target, &best);
-//   realse_kd_tree(root);
-//   printf("Best point: ");
-//   Point best_point = best.cluster.point;
-//   display_point(best_point);
-//   printf("Distance: %.2Lf\n", best.distance);
-//   printf("Using: %d look ups\n", count);
-
-//   Point best_cluster;
-//   long double min = RAND_MAX;
-//   for (i = 0; i < num_clusters; i++) {
-//     long double current = calc_dist(target, clusters[i]);
-//     // display_point(clusters[i]);
-//     if (current < min) {
-//       best_cluster = clusters[i];
-//       min = current;
-//     }
-//   }
-
-//   printf("Found to be best: ");
-//   display_point(best_cluster);
-//   printf("Found best distance: %2.Lf\n", min);
-// }
 
 void display_point(Point point) {
   int i;
