@@ -1,5 +1,5 @@
 build:
-	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c pgrid.c KD_tree.c brute_force_kd_tree.c -lm -fopenmp -O2 -o k-means
+	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c pgrid.c KD_tree.c brute_force_kd_tree.c parallel_kd_tree.c -lm -fopenmp -O2 -o k-means
 
 run: build
 	./k-means
@@ -22,8 +22,11 @@ grid_pl: build
 grid_both: build
 	./k-means p s g
 
-brute_seq_kd: build
-	./k-means b k
+kd_seq: build
+	./k-means k s
+
+kd_pl: build
+	./k-means k p
 
 test: build
 	./k-means t
