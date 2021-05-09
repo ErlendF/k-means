@@ -43,23 +43,6 @@ void calc_point_cell(int num_cell_corners, int num_grid_cells, Point grid[], Poi
   }
 }
 
-// void calculate_grid_closest_cluster(int num_cell_corners, int num_grid_cells, int *grid_points_closest, Point grid[], Point *clusters) {
-//   int i, j, k, cluster;
-//   long double dist, tmpdist;
-//   for (i = 0; i < num_cell_corners; i++) {
-//     dist = RAND_MAX;
-//     cluster = -1;
-//     for (j = 0; j < num_clusters; j++) {
-//       tmpdist = calc_dist(grid[i], clusters[j]);
-//       if (tmpdist < dist) {
-//         dist = tmpdist;
-//         cluster = j;
-//       }
-//     }
-//     grid_points_closest[i] = cluster;
-//   }
-// }
-
 void grid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, int num_grid_cells, int num_corners, int *grid_points_closest, int grid_corners[][(int)(pow(2, dims) + 0.5)], int *cell_closest_cluster) {
   int i, j, k, prev_value, cluster;
   long double dist, tmpdist;
@@ -74,7 +57,6 @@ void grid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, i
       }
     }
     grid_points_closest[i] = cluster;
-    // printf("Grid point (%Lf, %Lf) belongs to cluster %d\n", grid[i].coords[0], grid[i].coords[1], cluster);
   }
 
   for (i = 0; i < num_grid_cells; i++) {
@@ -88,7 +70,6 @@ void grid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, i
         }
       }
     }
-    // printf("Cell %d belongs to %d\n", i, prev_value);
     cell_closest_cluster[i] = prev_value;
   }
 }
