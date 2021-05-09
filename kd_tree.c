@@ -1,5 +1,5 @@
 
-#include "KD_tree.h"
+#include "kd_tree.h"
 int count = 0;  // Used to count how many calls to search_kd_tree there is.
 /**
  * Information of the best is stored in the "best" value sent in.
