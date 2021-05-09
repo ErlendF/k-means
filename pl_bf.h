@@ -1,7 +1,7 @@
 // Parallel brute force method
 
-#ifndef PARALLEL_H
-#define PARALLEL_H
+#ifndef PL_BF_H
+#define PL_BF_H
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>

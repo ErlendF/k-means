@@ -1,6 +1,6 @@
 // Parallellized brute force method using KD trees
 
-#include "parallel_kd_tree.h"
+#include "pl_bf_kd_tree.h"
 
 void kd_pcalc_belongs_to(Point *points, Point *clusters, int *belongs_to) {
   int i, j, cluster;

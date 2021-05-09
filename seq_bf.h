@@ -1,7 +1,7 @@
 // Brute-force method
 
-#ifndef BRUTE_FORCE_H
-#define BRUTE_FORCE_H
+#ifndef SEQ_BF_H
+#define SEQ_BF_H
 
 #include <stdlib.h>
 

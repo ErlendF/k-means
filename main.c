@@ -217,8 +217,7 @@ void sequential_grid() {
   init_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points,
             belongs_to_cell);
   do {  // If we move the cluster centers, we recalculate what cluster each point belongs to and what cells each cluster belongs to
-    grid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
-    grid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
+    grid_calc(points, grid, clusters_copy, belongs_to, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster, belongs_to_cell);
   } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
   mt2 = omp_get_wtime();
 

@@ -1,6 +1,6 @@
 // Brute-force method using KD trees
 
-#include "brute_force_kd_tree.h"
+#include "seq_bf_kd_tree.h"
 
 void kd_calc_belongs_to(Point* points, Point* clusters, int* belongs_to) {
   int i, j;

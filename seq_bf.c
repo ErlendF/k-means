@@ -1,6 +1,6 @@
 // Brute-force method
 
-#include "brute_force.h"
+#include "seq_bf.h"
 
 #include <stdio.h>
 

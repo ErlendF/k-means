@@ -1,7 +1,7 @@
 // Parallel grid method
 
-#ifndef PGRID_H
-#define PGRID_H
+#ifndef PL_GRID_H
+#define PL_GRID_H
 
 #include <math.h>
 #include <omp.h>

@@ -1,6 +1,6 @@
 // Parallel brute force method
 
-#include "parallel.h"
+#include "pl_bf.h"
 
 void pcalc_belongs_to(Point *points, Point *clusters, int *belongs_to) {
   int i, j, cluster;
