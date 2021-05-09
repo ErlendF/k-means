@@ -8,6 +8,9 @@ int num_cell_corners;  // Number of cell corners for grid method
 int num_corners;       // Total number of corners in grid
 double mt1, mt2;       // timing variables
 
+int test;     // Flag to identify if test mode is activated
+int verbose;  // Flag to identify if verbose mode is activated
+
 Point points[num_points];      // Array for storing all points
 Point clusters[num_clusters];  // Array for storing all clusters
 
@@ -22,8 +25,7 @@ void sequential_kd_tree();     // Sequential brute-force method using KD-tree
 void parallel_kd_tree();       // Parallel brute-force method using KD-tree
 void sequential_grid_kd();     // Sequential gride method using KD-tree
 void parallel_grid_kd();       // Parallel grid method using KD-tree
-int test;                      // Flag to identify if test mode is activated
-int verbose;
+
 int main(int argc, char *argv[]) {
   generate_clustered_list_of_points(points);  // Generates random clustered points for the algorithm
   init_uniform_cluster_centers(clusters);     // Generates random start cluster centers
