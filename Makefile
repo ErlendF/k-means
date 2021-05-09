@@ -20,7 +20,7 @@ grid_pl: build
 	./k-means p g
 
 grid_both: build
-	./k-means p s gb
+	./k-means p s g
 
 brute_seq_kd: build
 	./k-means b k
