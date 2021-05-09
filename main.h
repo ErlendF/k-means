@@ -3,6 +3,7 @@
 #include <time.h>
 
 #include "brute_force.h"
+#include "brute_force_kd_tree.h"
 #include "consts.h"
 #include "grid.h"
 #include "init.h"
