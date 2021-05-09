@@ -6,6 +6,7 @@
 #include "consts.h"
 #include "grid.h"
 #include "init.h"
+#include "kd_tree.h"
 #include "output.h"
 #include "parallel.h"
 #include "pgrid.h"
