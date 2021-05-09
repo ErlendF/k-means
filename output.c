@@ -79,9 +79,12 @@ void print_measures(Point* points, Point* clusters, int* belongs_to) {
 
 void write_points_to_file(Point* points) {
   int i, j;
-  FILE* fp;
+  FILE* fp = fopen(points_file, "w+");
+  if (fp == NULL) {
+    printf("Failed to open points file (%s), exiting\n\n", points_file);
+    exit(1);
+  }
 
-  fp = fopen(points_file, "w+");
   for (i = 0; i < num_points; i++) {
     for (j = 0; j < dims; j++) {
       if (j == dims - 1) {
@@ -91,13 +94,17 @@ void write_points_to_file(Point* points) {
       }
     }
   }
+  fclose(fp);
 }
 
 void write_clusters_to_file(Point* clusters) {
   int i, j;
-  FILE* fp;
+  FILE* fp = fopen(clusters_file, "w+");
+  if (fp == NULL) {
+    printf("Failed to open clusters file (%s), exiting\n\n", clusters_file);
+    exit(1);
+  }
 
-  fp = fopen(clusters_file, "w+");
   for (i = 0; i < num_clusters; i++) {
     for (j = 0; j < dims; j++) {
       if (j == dims - 1) {
@@ -107,16 +114,26 @@ void write_clusters_to_file(Point* clusters) {
       }
     }
   }
+  fclose(fp);
 }
 
 void init_performance_file() {
   FILE* fp = fopen(performance_file, "w+");
+  if (fp == NULL) {
+    printf("Failed to open performance file (%s), exiting\n\n", performance_file);
+    exit(1);
+  }
+
   fprintf(fp, "mode,algorithm,time,num_points,dims,num_clusters,num_cells\n");
   fclose(fp);
 }
 
 void write_performance(int num_threads, char* mode, char* alg, double time) {
   FILE* fp = fopen(performance_file, "a");
+  if (fp == NULL) {
+    printf("Failed to open performance file (%s), exiting\n\n", performance_file);
+    exit(1);
+  }
 
   fprintf(fp, "%s,%s,%d,%f,%d,%d,%d,%d\n", mode, alg, num_threads, time, num_points, dims, num_clusters, num_cells);
   fclose(fp);
