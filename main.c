@@ -1,6 +1,6 @@
 #include "main.h"
 
-#define test_iter 1
+#define test_iter 3
 #define thread_iter 5
 
 int num_grid_cells;    // Number of cells for grid method
