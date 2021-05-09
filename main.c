@@ -17,7 +17,8 @@ void sequential_bruteforce();  // Sequential brute-force method
 void parallel_bruteforce();    // Parallel brute-force method
 void sequential_grid();        // Sequential grid method
 void parallel_grid();          // Parallel grid method
-void kd_tree_bruteforce();     // Brute force KD-tree method
+void sequential_kd_tree();     // Sequential brute-force KD-tree method
+void parallel_kd_tree();       // Parallel brute-force KD-tree method
 int test;                      // Flag to identify if test mode is activated
 
 int main(int argc, char *argv[]) {
@@ -115,9 +116,13 @@ int main(int argc, char *argv[]) {
       if (parallel) {
         parallel_bruteforce();
       }
-
-      if (kd_tree) {
-        kd_tree_bruteforce();
+    }
+    if (kd_tree) {
+      if (sequential) {
+        sequential_kd_tree();
+      }
+      if (parallel) {
+        parallel_kd_tree();
       }
     }
   }
@@ -128,7 +133,52 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-// The sequential brute-force algorithm
+void parallel_kd_tree() {
+  Point clusters_copy[num_clusters];
+  int i, j;
+  for (i = 0; i < num_clusters; i++) {
+    for (j = 0; j < dims; j++) {
+      clusters_copy[i].coords[j] = clusters[i].coords[j];
+    }
+  }
+
+  printf("\nStarting parallel kd-tree algorithm..\n");
+  mt1 = omp_get_wtime();
+  do {
+    kd_pcalc_belongs_to(points, clusters_copy, belongs_to);
+  } while (pmove_cluster_centers(points, clusters_copy, belongs_to) != 0);
+  mt2 = omp_get_wtime();
+  printf("Finished parallel kd-tree in %f seconds.\n", mt2 - mt1);
+  if (!test) {
+    //print_measures(points, clusters_copy, belongs_to);
+  } else {
+    write_performance(-1, "Parallel", "KD-Tree", mt2 - mt1);
+  }
+}
+
+void sequential_kd_tree() {
+  Point clusters_copy[num_clusters];
+  int i, j;
+  for (i = 0; i < num_clusters; i++) {
+    for (j = 0; j < dims; j++) {
+      clusters_copy[i].coords[j] = clusters[i].coords[j];
+    }
+  }
+
+  printf("\nStarting sequential kd-tree algorithm..\n");
+  mt1 = omp_get_wtime();
+  do {
+    kd_calc_belongs_to(points, clusters_copy, belongs_to);
+  } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
+  mt2 = omp_get_wtime();
+  printf("Finished sequential kd-tree in %f seconds.\n", mt2 - mt1);
+  if (!test) {
+    //print_measures(points, clusters_copy, belongs_to);
+  } else {
+    write_performance(-1, "Parallel", "KD-Tree", mt2 - mt1);
+  }
+}
+
 void sequential_bruteforce() {
   Point clusters_copy[num_clusters];
   int i, j;
@@ -249,27 +299,4 @@ void parallel_grid() {
     write_performance(omp_get_max_threads(), "Parallel", "Grid", mt2 - mt1);
   }
   printf("Finished parallel grid in %f seconds.\n", mt2 - mt1);
-}
-
-void kd_tree_bruteforce() {
-  Point clusters_copy[num_clusters];
-  int i, j;
-  for (i = 0; i < num_clusters; i++) {
-    for (j = 0; j < dims; j++) {
-      clusters_copy[i].coords[j] = clusters[i].coords[j];
-    }
-  }
-
-  printf("\nStarting sequential brute-force with kd-tree algorithm..\n");
-  mt1 = omp_get_wtime();
-  do {
-    kd_calc_belongs_to(points, clusters_copy, belongs_to);
-  } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
-  mt2 = omp_get_wtime();
-  printf("Finished sequential brute-force with kd-tree in %f seconds.\n", mt2 - mt1);
-  if (!test) {
-    //print_measures(points, clusters_copy, belongs_to);
-  } else {
-    write_performance(-1, "Sequential", "Brute-force", mt2 - mt1);
-  }
 }
