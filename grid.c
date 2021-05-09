@@ -1,3 +1,5 @@
+// Sequential grid method
+
 #include "grid.h"
 
 // Init grid initializes everything related to the grid. This only needs to be run once.

@@ -1,3 +1,4 @@
+// Brute force method using KD
 
 #ifndef KD_TREE_H
 #define KD_TREE_H

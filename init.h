@@ -1,3 +1,5 @@
+// Generating points and initial cluster centers locations
+
 #ifndef INIT_H
 #define INIT_H
 

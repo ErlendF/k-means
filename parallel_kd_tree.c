@@ -1,3 +1,4 @@
+// Parallellized brute force method using KD trees
 
 #include "parallel_kd_tree.h"
 

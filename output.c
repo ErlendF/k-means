@@ -1,3 +1,5 @@
+// Prints various information to stdout or file
+
 #include "output.h"
 
 // Prints all the points to stdout

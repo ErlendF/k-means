@@ -1,3 +1,5 @@
+// Parallel grid method
+
 #include "pgrid.h"
 
 #include "parallel.h"

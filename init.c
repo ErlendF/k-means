@@ -1,3 +1,5 @@
+// Generating points and initial cluster centers locations
+
 #include "init.h"
 
 // This isn't really in use.
