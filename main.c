@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
   }
 
   // Fallback if no input arguments are given
-  if (parallel + sequential + grid_mode + bruteforce + test < 1) {
+  if (parallel + sequential + grid_mode + kd_tree + bruteforce + test < 1) {
     printf("No inputs given, running all tests\n");
     test = 1;
   }
@@ -92,9 +92,9 @@ int main(int argc, char *argv[]) {
     for (i = 0; i <= max_threads; i += thread_iter) {
       for (j = 0; j < test_iter; j++) {
         num_threads = i;
-        if (i == 0) {  // Forcing the algorithms to run with 1 thread first
+        if (i == 0)  // Forcing the algorithms to run with 1 thread first
           num_threads = 1;
-        }
+
         omp_set_num_threads(num_threads);
         parallel_bruteforce();
         parallel_kd_tree();
@@ -117,38 +117,29 @@ int main(int argc, char *argv[]) {
       }
     }
   } else {  // Runs algorithms depending on flags
-    if (grid_mode) {
-      if (sequential) {
+    if (grid_mode && kd_tree == 0) {
+      if (sequential)
         sequential_grid();
-      }
-      if (parallel) {
+      if (parallel)
         parallel_grid();
-      }
     }
     if (bruteforce) {
-      if (sequential) {
+      if (sequential)
         sequential_bruteforce();
-      }
-      if (parallel) {
+      if (parallel)
         parallel_bruteforce();
-      }
     }
-    if (kd_tree) {
-      if (sequential) {
+    if (kd_tree && grid_mode == 0) {
+      if (sequential)
         sequential_kd_tree();
-      }
-      if (parallel) {
+      if (parallel)
         parallel_kd_tree();
-      }
     }
-
     if (kd_tree && grid_mode) {
-      if (sequential) {
+      if (sequential)
         sequential_grid_kd();
-      }
-      if (parallel) {
+      if (parallel)
         parallel_grid_kd();
-      }
     }
   }
 
@@ -175,9 +166,8 @@ void sequential_bruteforce() {
 
   // If not test mode, print measures (points in cluster, average distance, variation etc.), if test mode, it writes algorithm and time to a file
   if (!test) {
-    if (verbose) {
+    if (verbose)
       print_measures(points, clusters_copy, belongs_to);
-    }
   } else {
     write_performance(-1, "Sequential", "Brute-force", mt2 - mt1);
   }
@@ -325,10 +315,7 @@ void sequential_grid_kd() {
   //Initializes the grid, put inside the timing variables, as this is something we do in addition to be able to calculate the results faster
   init_grid(num_grid_cells, num_cell_corners, grid_corners, grid, points,
             belongs_to_cell);
-  do {  // If we move the cluster centers, we recalculate what cluster each point belongs to and what cells each cluster belongs to
-    kd_grid_closest_cluster(grid, clusters_copy, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster);
-    kd_grid_calc_belongs_to(points, clusters_copy, belongs_to, cell_closest_cluster, belongs_to_cell);
-  } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
+  skd_grid_calc(points, grid, clusters_copy, belongs_to, num_cell_corners, num_grid_cells, num_corners, grid_points_closest, grid_corners, cell_closest_cluster, belongs_to_cell);
   mt2 = omp_get_wtime();
 
   // If not test in mode, print measures (points in cluster, average distance, variation etc.), if test mode, it writes algorithm and time to a file

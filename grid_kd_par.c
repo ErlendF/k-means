@@ -47,7 +47,7 @@ void pkd_grid_calc(Point *points, Point grid[], Point *clusters, int *belongs_to
       }
       // printf("Done with for thingy\n");
     }
-    realse_kd_tree(root);
+    release_kd_tree(root);
 
   } while (pmove_cluster_centers(points, clusters, belongs_to) != 0);
 }

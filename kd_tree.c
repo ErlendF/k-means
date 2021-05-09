@@ -31,7 +31,7 @@ void search_kd_tree_help(Node root, Point search_from, ClusterDist* best) {
   if (search_from.coords[dim] >= root.value) {
     first = root.right[0];  // If isLeaf = 0; both right, and left should have
                             // values.
-    second = root.left[0];  // TODO: Add check not null. (should not be needed)?
+    second = root.left[0];
   } else {
     first = root.left[0];
     second = root.right[0];
@@ -96,7 +96,6 @@ Node* build_kd_tree_helper(Cluster* clusters, int size, int dim) {
   root->value = right_side[0]
                     .point.coords[dim];  // If dim values is >= to this we go right.
 
-  // TODO: Check time to see if we should make it parallel for both calls.
   // Recursivly build up the left side.
   // Recursivly build up the right side.
 
@@ -106,15 +105,14 @@ Node* build_kd_tree_helper(Cluster* clusters, int size, int dim) {
   return root;
 }
 
-void realse_kd_tree(Node* root) {
+void release_kd_tree(Node* root) {
   if (root->isLeaf == 0) {
-    realse_kd_tree(root->left);
-    realse_kd_tree(root->right);
+    release_kd_tree(root->left);
+    release_kd_tree(root->right);
     free(root->left);
     free(root->right);
   }
-
-}  // TODO: Make realse of KD Tree
+}
 
 int compare(const void* a, const void* b) {
   Cluster point_a = *((Cluster*)a);

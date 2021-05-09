@@ -13,5 +13,5 @@ void kd_calc_belongs_to(Point* points, Point* clusters, int* belongs_to) {
     search_kd_tree(*root, points[i], &best);
     belongs_to[i] = best.cluster.ID;
   }
-  realse_kd_tree(root);
+  release_kd_tree(root);
 }
