@@ -10,5 +10,6 @@
 #include "kd_tree.h"
 #include "output.h"
 #include "parallel.h"
+#include "parallel_kd_tree.h"
 #include "pgrid.h"
 #include "utils.h"

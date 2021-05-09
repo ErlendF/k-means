@@ -1,7 +1,7 @@
 #ifndef CONSTS_H
 #define CONSTS_H
 
-#define num_points 200000
+#define num_points 20000
 #define num_clusters 300
 #define dims 3
 #define max_num 25000  // The maximum size of the points (with clustered points, the max will be 1.01 times max_num)
