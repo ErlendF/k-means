@@ -1,5 +1,4 @@
 #include "brute_force_kd_tree.h"
-
 int move_cluster_centers(Point* points, Point* clusters, int* belongs_to) {
   int i, j, cluster;
   int moved = 0;
@@ -46,11 +45,11 @@ void calc_belongs_to(Point* points, Point* clusters, int* belongs_to) {
   int i, j;
   long double dist, tmpdist;
   int cluster;
-  Node root = build_kd_tree(clusters, num_clusters, 0);
-  PointDist* best;
+  Node root = build_kd_tree(clusters);
+  ClusterDist* best;
   for (i = 0; i < num_points; i++) {
     best->distance = RAND_MAX;
     search_kd_tree(root, points[i], best);
-    belongs_to[i] = cluster;
+    belongs_to[i] = best->cluster.ID;
   }
 }

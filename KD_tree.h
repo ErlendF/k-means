@@ -3,11 +3,17 @@
 #define KD_TREE_H
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "consts.h"
 #include "init.h"
 #include "output.h"
 #include "utils.h"
+
+typedef struct Cluster {
+  Point point;
+  int ID;
+} Cluster;
 
 typedef struct Node {
   struct Node* left;
@@ -15,20 +21,21 @@ typedef struct Node {
   long double value;
   int dim;
   int isLeaf;
-  Point point;
+  Cluster cluster;
 } Node;
 
-typedef struct PointDist {
-  struct Point point;
+typedef struct ClusterDist {
+  struct Cluster cluster;
   long double distance;
-} PointDist;
+} ClusterDist;
 
-void search_kd_tree(Node current, Point search_from, PointDist* best);
-Node build_kd_tree(Point* clusters, int size, int dim);
+void search_kd_tree(Node current, Point search_from, ClusterDist* best);
+Node build_kd_tree_helper(Cluster* clusters, int size, int dim);
+Node build_kd_tree(Point* cluster);
 int compare(const void* a, const void* b);
 void realse_kd_tree();
-void print_kd_tree(Node root);
-void print_kd_tree_helper(Node current, int depth);
+void display_kd_tree(Node root);
+void display_kd_tree_helper(Node current, int depth);
 void display_point(Point point);
 
 #endif
