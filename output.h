@@ -1,3 +1,5 @@
+// Prints various information to stdout or file
+
 #ifndef OUTPUT_H
 #define OUTPUT_H
 
@@ -8,6 +10,7 @@
 #include "consts.h"
 #include "utils.h"
 
+// The file names used
 #define points_file "points.csv"
 #define clusters_file "clusters.csv"
 #define performance_file "performance.csv"

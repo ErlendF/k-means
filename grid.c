@@ -1,5 +1,8 @@
+// Sequential grid method
+
 #include "grid.h"
 
+// Init grid initializes everything related to the grid. This only needs to be run once.
 void init_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(int)(pow(2, dims) + 0.5)], Point grid[], Point points[], int belongs_to_cell[]) {
   int i, j, k, h;
   int num_corners = (int)(pow(2, dims) + 0.5);
@@ -12,6 +15,7 @@ void init_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(int
     exit(1);
   }
 
+  // Calculating the location of each corner of the grid cells
   for (i = 0; i < num_cell_corners; i++) {
     for (j = 0; j < dims; j++) {
       switch (j) {
@@ -30,6 +34,8 @@ void init_grid(int num_grid_cells, int num_cell_corners, int grid_corners[][(int
   calc_point_cell(num_cell_corners, num_grid_cells, grid, points, belongs_to_cell, grid_corners);
 }
 
+// Calculates which points belongs to which grid cell.
+// This only needs to be calculated once as the points never move (only the cluster centers do)
 void calc_point_cell(int num_cell_corners, int num_grid_cells, Point grid[], Point *points, int belongs_to_cell[], int grid_corners[][(int)(pow(2, dims) + 0.5)]) {
   int i, j, idx;
   long double cell_width = ((long double)max_num * 1.01) / (long double)num_cells;
@@ -43,6 +49,7 @@ void calc_point_cell(int num_cell_corners, int num_grid_cells, Point grid[], Poi
   }
 }
 
+// Calculates which cluster is closest to each gridcell. If there are multiple, it's set to -1
 void grid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, int num_grid_cells, int num_corners, int *grid_points_closest, int grid_corners[][(int)(pow(2, dims) + 0.5)], int *cell_closest_cluster) {
   int i, j, k, prev_value, cluster;
   long double dist, tmpdist;
@@ -74,12 +81,15 @@ void grid_closest_cluster(Point grid[], Point *clusters, int num_cell_corners, i
   }
 }
 
+// Find corner finds each corner for the grid cell (see report)
 void find_corners(int grid_corners[][(int)(pow(2, dims) + 0.5)]) {
   int i, j, k, idx, cluster;
+
   int t_num_cells = (int)(pow(num_cells, dims) + 0.5);
   int corners = (int)(pow(2, dims) + 0.5);
   int cells_sq = (num_cells) * (num_cells);
   int cells_one_sq = (num_cells + 1) * (num_cells + 1);
+
   for (i = 0; i < t_num_cells; i++) {
     for (j = 0; j < corners; j++) {
       idx = i % cells_sq +                   // 1d
@@ -91,11 +101,13 @@ void find_corners(int grid_corners[][(int)(pow(2, dims) + 0.5)]) {
           idx += (int)(pow(num_cells + 1, k) + 0.5);
         }
       }
+
       grid_corners[i][j] = idx;
     }
   }
 }
 
+// Calculates which cluster each point belongs to
 void grid_calc_belongs_to(Point *points, Point *clusters, int *belongs_to, int *cell_closest_cluster, int belongs_to_cell[]) {
   int i, j;
   long double dist, tmpdist;

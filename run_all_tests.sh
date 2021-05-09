@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Used for running numerous automated tests
+
 echo "Deleting all performance files"
 find . -name \performance.csv -type f -delete
 

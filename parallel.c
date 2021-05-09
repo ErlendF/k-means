@@ -1,3 +1,4 @@
+// Parallel brute force method
 
 #include "parallel.h"
 

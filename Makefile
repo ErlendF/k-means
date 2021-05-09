@@ -1,5 +1,17 @@
 build:
-	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c pgrid.c -lm -fopenmp -O2 -o k-means
+	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c pgrid.c kd_tree.c brute_force_kd_tree.c parallel_kd_tree.c grid_kd_seq.c grid_kd_par.c -lm -fopenmp -O2 -o k-means
+
+test: build
+	./k-means t
+
+gprof:
+	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c pgrid.c -pg -lm -fopenmp -O2 -o k-means && ./k-means p g && gprof k-means gmon.out > myprog_output
+
+cleanup:
+	rm ./k-means
+
+
+# For running various specific configurations
 
 run: build
 	./k-means
@@ -22,11 +34,15 @@ grid_pl: build
 grid_both: build
 	./k-means p s g
 
-test: build
-	./k-means t
+kd_seq: build
+	./k-means k s
 
-gprof:
-	gcc main.c output.c utils.c grid.c init.c parallel.c brute_force.c pgrid.c -pg -lm -fopenmp -O2 -o k-means && ./k-means p g && gprof k-means gmon.out > myprog_output
+kd_pl: build
+	./k-means k p
 
-cleanup:
-	rm ./k-means
+grid_kd_seq: build
+	./k-means g k s
+
+grid_kd_par: build
+	./k-means g k p
+

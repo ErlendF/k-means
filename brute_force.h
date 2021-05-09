@@ -1,3 +1,5 @@
+// Brute-force method
+
 #ifndef BRUTE_FORCE_H
 #define BRUTE_FORCE_H
 

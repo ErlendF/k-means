@@ -1,5 +1,8 @@
+// Prints various information to stdout or file
+
 #include "output.h"
 
+// Prints all the points to stdout
 void print_points(Point* points) {
   int i, j;
   for (i = 0; i < num_points; i++) {
@@ -15,6 +18,7 @@ void print_points(Point* points) {
   }
 }
 
+// Prints each point and which cluster it belongs to
 void print_belongs_to(Point* points, int* belongs_to) {
   int i, j;
   for (i = 0; i < num_points; i++) {
@@ -29,6 +33,7 @@ void print_belongs_to(Point* points, int* belongs_to) {
   }
 }
 
+// Prints the cluster centers
 void print_cluster_centers(Point* clusters) {
   int i, j;
   for (i = 0; i < num_clusters; i++) {
@@ -42,6 +47,8 @@ void print_cluster_centers(Point* clusters) {
   }
 }
 
+// Prints various performance measures,
+// including average distance and the variation in distance from the cluster centers to their points
 void print_measures(Point* points, Point* clusters, int* belongs_to) {
   int i, j, cls;
   int ct = 0;
@@ -77,6 +84,7 @@ void print_measures(Point* points, Point* clusters, int* belongs_to) {
          num_points);
 }
 
+// Writes all the points to file
 void write_points_to_file(Point* points) {
   int i, j;
   FILE* fp = fopen(points_file, "w+");
@@ -97,6 +105,7 @@ void write_points_to_file(Point* points) {
   fclose(fp);
 }
 
+// Writes all the cluster centers to file
 void write_clusters_to_file(Point* clusters) {
   int i, j;
   FILE* fp = fopen(clusters_file, "w+");
@@ -117,6 +126,7 @@ void write_clusters_to_file(Point* clusters) {
   fclose(fp);
 }
 
+// Creates and writes the header for the performance file
 void init_performance_file() {
   FILE* fp = fopen(performance_file, "w+");
   if (fp == NULL) {
@@ -128,6 +138,7 @@ void init_performance_file() {
   fclose(fp);
 }
 
+// Appends performance measures for one method to the performance file
 void write_performance(int num_threads, char* mode, char* alg, double time) {
   FILE* fp = fopen(performance_file, "a");
   if (fp == NULL) {

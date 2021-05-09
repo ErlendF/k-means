@@ -1,3 +1,5 @@
+// Parallel grid method
+
 #ifndef PGRID_H
 #define PGRID_H
 
