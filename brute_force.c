@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+// Moving cluster centers sequentially
 int move_cluster_centers(Point* points, Point* clusters, int* belongs_to) {
   int i, j, cluster;
   int moved = 0;
@@ -26,7 +27,7 @@ int move_cluster_centers(Point* points, Point* clusters, int* belongs_to) {
   }
 
   for (i = 0; i < num_clusters; i++) {
-    if (counts[i] == 0) {
+    if (counts[i] == 0) {  // There were no points belonging to the cluster
       continue;
     }
 

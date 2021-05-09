@@ -3,8 +3,8 @@
 
 #include <stdlib.h>
 
-#include "KD_tree.h"
 #include "consts.h"
+#include "kd_tree.h"
 #include "utils.h"
 
 int kd_move_cluster_centers(Point* points, Point* clusters, int* belongs_to);

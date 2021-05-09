@@ -3,35 +3,37 @@
 #define test_iter 1
 #define thread_iter 5
 
-int num_grid_cells;
-int num_cell_corners;
-double mt1, mt2;  // timing variables
+int num_grid_cells;    // Number of cells for grid method
+int num_cell_corners;  // Number of cell corners for grid method
+double mt1, mt2;       // timing variables
 
-Point points[num_points];
-Point clusters[num_clusters];
+Point points[num_points];      // Array for storing all points
+Point clusters[num_clusters];  // Array for storing all clusters
 
-int belongs_to[num_points];
-int belongs_to_cell[num_points];
-void sequential_bruteforce();
-void parallel_bruteforce();
-void sequential_grid();
-void parallel_grid();
-void kd_tree_bruteforce();
-int test;
+int belongs_to[num_points];       // Array for storing what cluster ID each points belongs to
+int belongs_to_cell[num_points];  // Array for storing what cell ID each points belongs to
+
+void sequential_bruteforce();  // Sequential brute-force method
+void parallel_bruteforce();    // Parallel brute-force method
+void sequential_grid();        // Sequential grid method
+void parallel_grid();          // Parallel grid method
+void kd_tree_bruteforce();     // Brute force KD-tree method
+int test;                      // Flag to identify if test mode is activated
 
 int main(int argc, char *argv[]) {
-  generate_clustered_list_of_points(points);
-  init_uniform_cluster_centers(clusters);
+  generate_clustered_list_of_points(points);  // Generates random clustered points for the algorithm
+  init_uniform_cluster_centers(clusters);     // Generates random start cluster centers
 
-  int i, j;
-  int parallel = 0;
-  int sequential = 0;
-  int grid_mode = 0;
-  int bruteforce = 0;
-  int kd_tree = 0;
+  int i, j;            // Iteration variables
+  int parallel = 0;    // Flag for parallel run
+  int sequential = 0;  // Flag for sequential run
+  int grid_mode = 0;   // Flag for grid mode
+  int bruteforce = 0;  // Flag for brute-force mode
+  int kd_tree = 0;     // Flag for KD-tree mode
 
-  test = 0;
+  test = 0;  //test flag default off
 
+  //Sets values to the flags depending on the input from the makefile
   for (i = 1; i < argc; i++) {
     switch (*argv[i]) {
       case 'p':
@@ -46,9 +48,6 @@ int main(int argc, char *argv[]) {
       case 't':
         test = 1;
         break;
-      // case 'k':
-      //   kd = 1;
-      //   break;
       case 'g':
         grid_mode = 1;
         break;
@@ -58,23 +57,21 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  // Fallback if no input flags are given
   if (parallel + sequential + grid_mode + bruteforce + test < 1) {
     printf("No inputs given, running parallel brute-force mode\n");
     parallel = 1;
     bruteforce = 1;
   }
 
-  // printf("parallel=%d, sequential = %d, grid = %d, bruteforce = %d\n",
-  // parallel, sequential, grid_mode, bruteforce);
-
+  // If test, we first run the sequential algorithms, then we run for test_iter iterations with every thread_iter number of threads.
   if (test) {
-    printf("Running test mode, every %dth thread, be patient...!\n",
-           thread_iter);
+    printf("Running test mode, every %dth thread, be patient...!\n", thread_iter);
     init_performance_file();
     int num_threads;
     for (i = 0; i < test_iter; i++) {
       sequential_bruteforce();
-      if (dims <= 3) {
+      if (dims <= 3) {  // Grid mode only support up to 3 dimensions
         sequential_grid();
       }
     }
@@ -82,27 +79,27 @@ int main(int argc, char *argv[]) {
     for (i = 0; i <= max_threads; i += thread_iter) {
       for (j = 0; j < test_iter; j++) {
         num_threads = i;
-        if (i == 0) {
+        if (i == 0) {  // Forcing the algorithms to run with 1 thread first
           num_threads = 1;
         }
         omp_set_num_threads(num_threads);
         parallel_bruteforce();
-        if (dims <= 3) {
+        if (dims <= 3) {  // Grid mode only support up to 3 dimensions
           parallel_grid();
         }
       }
     }
-    if (num_threads != max_threads) {
-      for (i = 0; i < test_iter; i++) {
+    if (num_threads != max_threads) {    // If max threads is not divisible by thread_iter,
+      for (i = 0; i < test_iter; i++) {  // we run with the max number of threads
         num_threads = max_threads;
         omp_set_num_threads(num_threads);
         parallel_bruteforce();
         if (dims <= 3) {
-          parallel_grid();
+          parallel_grid();  // Grid mode only support up to 3 dimensions
         }
       }
     }
-  } else {
+  } else {  // Runs algorithms depending on flags
     if (grid_mode) {
       if (sequential) {
         sequential_grid();
@@ -125,39 +122,17 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  write_points_to_file(points);
-  write_clusters_to_file(clusters);
+  write_points_to_file(points);      // Writes the points used to a file
+  write_clusters_to_file(clusters);  // Writes the clusters used to a file
 
   return 0;
 }
 
-void kd_tree_bruteforce() {
-  Point clusters_copy[num_clusters];
-  int i, j;
-  for (i = 0; i < num_clusters; i++) {
-    for (j = 0; j < dims; j++) {
-      clusters_copy[i].coords[j] = clusters[i].coords[j];
-    }
-  }
-
-  printf("\nStarting sequential brute-force with kd-tree algorithm..\n");
-  mt1 = omp_get_wtime();
-  do {
-    kd_calc_belongs_to(points, clusters_copy, belongs_to);
-  } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
-  mt2 = omp_get_wtime();
-  printf("Finished sequential brute-force with kd-tree in %f seconds.\n", mt2 - mt1);
-  if (!test) {
-    //print_measures(points, clusters_copy, belongs_to);
-  } else {
-    write_performance(-1, "Sequential", "Brute-force", mt2 - mt1);
-  }
-}
-
+// The sequential brute-force algorithm
 void sequential_bruteforce() {
   Point clusters_copy[num_clusters];
   int i, j;
-  for (i = 0; i < num_clusters; i++) {
+  for (i = 0; i < num_clusters; i++) {  // Copies the initial generated clusters to not change the the array if used by other algorithms
     for (j = 0; j < dims; j++) {
       clusters_copy[i].coords[j] = clusters[i].coords[j];
     }
@@ -165,13 +140,15 @@ void sequential_bruteforce() {
 
   printf("\nStarting sequential brute-force algorithm..\n");
   mt1 = omp_get_wtime();
-  do {
+  do {  // If we move the cluster centers, we recalculate what cluster each point belongs to
     calc_belongs_to(points, clusters_copy, belongs_to);
   } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
+
   mt2 = omp_get_wtime();
 
+  // If not test printing measures (points in cluster, average distance, variation etc.), if test mode, it writes algorithm and time to a file
   if (!test) {
-    //print_measures(points, clusters_copy, belongs_to);
+    print_measures(points, clusters_copy, belongs_to);
   } else {
     write_performance(-1, "Sequential", "Brute-force", mt2 - mt1);
   }
@@ -181,7 +158,7 @@ void sequential_bruteforce() {
 void parallel_bruteforce() {
   Point clusters_copy[num_clusters];
   int i, j;
-  for (i = 0; i < num_clusters; i++) {
+  for (i = 0; i < num_clusters; i++) {  // Copies the initial generated clusters to not change the the array if used by other algorithms
     for (j = 0; j < dims; j++) {
       clusters_copy[i].coords[j] = clusters[i].coords[j];
     }
@@ -207,7 +184,7 @@ void sequential_grid() {
   printf("\nStarting sequential grid algorithm..\n");
   Point clusters_copy[num_clusters];
   int i, j;
-  for (i = 0; i < num_clusters; i++) {
+  for (i = 0; i < num_clusters; i++) {  // Copies the initial generated clusters to not change the the array if used by other algorithms
     for (j = 0; j < dims; j++) {
       clusters_copy[i].coords[j] = clusters[i].coords[j];
     }
@@ -245,7 +222,7 @@ void parallel_grid() {
   printf("\nStarting parallel grid algorithm with %d threads..\n", omp_get_max_threads());
   Point clusters_copy[num_clusters];
   int i, j;
-  for (i = 0; i < num_clusters; i++) {
+  for (i = 0; i < num_clusters; i++) {  // Copies the initial generated clusters to not change the the array if used by other algorithms
     for (j = 0; j < dims; j++) {
       clusters_copy[i].coords[j] = clusters[i].coords[j];
     }
@@ -272,4 +249,27 @@ void parallel_grid() {
     write_performance(omp_get_max_threads(), "Parallel", "Grid", mt2 - mt1);
   }
   printf("Finished parallel grid in %f seconds.\n", mt2 - mt1);
+}
+
+void kd_tree_bruteforce() {
+  Point clusters_copy[num_clusters];
+  int i, j;
+  for (i = 0; i < num_clusters; i++) {
+    for (j = 0; j < dims; j++) {
+      clusters_copy[i].coords[j] = clusters[i].coords[j];
+    }
+  }
+
+  printf("\nStarting sequential brute-force with kd-tree algorithm..\n");
+  mt1 = omp_get_wtime();
+  do {
+    kd_calc_belongs_to(points, clusters_copy, belongs_to);
+  } while (move_cluster_centers(points, clusters_copy, belongs_to) != 0);
+  mt2 = omp_get_wtime();
+  printf("Finished sequential brute-force with kd-tree in %f seconds.\n", mt2 - mt1);
+  if (!test) {
+    //print_measures(points, clusters_copy, belongs_to);
+  } else {
+    write_performance(-1, "Sequential", "Brute-force", mt2 - mt1);
+  }
 }
