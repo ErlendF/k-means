@@ -1,4 +1,4 @@
-// Brute force method using KD
+// Builds and searches in KD-trees
 
 #include "kd_tree.h"
 int count = 0;  // Used to count how many calls to search_kd_tree there is.
