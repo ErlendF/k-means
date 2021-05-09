@@ -26,12 +26,13 @@ typedef struct Node {
 
 typedef struct ClusterDist {
   struct Cluster cluster;
-  long double distance;
+  double distance;
 } ClusterDist;
 
 void search_kd_tree(Node current, Point search_from, ClusterDist* best);
-Node build_kd_tree_helper(Cluster* clusters, int size, int dim);
-Node build_kd_tree(Point* cluster);
+void search_kd_tree_help(Node root, Point search_from, ClusterDist* best);
+Node* build_kd_tree_helper(Cluster* clusters, int size, int dim);
+Node* build_kd_tree(Point* cluster);
 int compare(const void* a, const void* b);
 void realse_kd_tree();
 void display_kd_tree(Node root);

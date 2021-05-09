@@ -1,5 +1,5 @@
 #include "brute_force_kd_tree.h"
-int move_cluster_centers(Point* points, Point* clusters, int* belongs_to) {
+int kd_move_cluster_centers(Point* points, Point* clusters, int* belongs_to) {
   int i, j, cluster;
   int moved = 0;
   int counts[num_clusters];
@@ -41,15 +41,34 @@ int move_cluster_centers(Point* points, Point* clusters, int* belongs_to) {
   return moved;
 }
 
-void calc_belongs_to(Point* points, Point* clusters, int* belongs_to) {
+void kd_calc_belongs_to(Point* points, Point* clusters, int* belongs_to) {
   int i, j;
   long double dist, tmpdist;
   int cluster;
-  Node root = build_kd_tree(clusters);
-  ClusterDist* best;
+  //printf("Trying to build tree\n");
+  Node* root = build_kd_tree(clusters);
+  //printf("Managed to build tree\n");
+  ClusterDist best;
+  // best = malloc(sizeof(ClusterDist));
   for (i = 0; i < num_points; i++) {
-    best->distance = RAND_MAX;
-    search_kd_tree(root, points[i], best);
-    belongs_to[i] = best->cluster.ID;
+    best.distance = RAND_MAX;
+    search_kd_tree(*root, points[i], &best);
+    // if (best[0].cluster.ID != belongs_to[i]) {
+    //   printf("Point: %d swappes from %d to %d. Curr distance %.2Lf\n", i, belongs_to[i], best[0].cluster.ID, best[0].distance);
+    // }
+    // for (j = 0; j < num_clusters; j++) {
+    //   double distance = calc_dist(clusters[j], points[i]);
+    //   if (distance < best.distance) {
+    //     printf("Algorthim fakks up at: %d. Found %d distance: %.2f. Better is %d distance: %.2f\n", i, best.cluster.ID, best.distance, j, distance);
+    //     display_point(points[i]);
+    //     printf("###### TREE ######\n");
+    //     display_kd_tree(*root);
+    //     printf("###### DONE ######\n");
+
+    //     break;
+    //   }
+    // }
+    belongs_to[i] = best.cluster.ID;
   }
+  realse_kd_tree(root);
 }

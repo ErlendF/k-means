@@ -5,6 +5,13 @@ int count = 0;  // Used to count how many calls to search_kd_tree there is.
  * Information of the best is stored in the "best" value sent in.
  */
 void search_kd_tree(Node root, Point search_from, ClusterDist* best) {
+  count = 0;
+  search_kd_tree_help(root, search_from, best);
+
+  //printf("Checked: %d\n", count);
+}
+
+void search_kd_tree_help(Node root, Point search_from, ClusterDist* best) {
   count++;  // Lets see how many things we visit.
 
   if (root.isLeaf == 1) {
@@ -29,19 +36,19 @@ void search_kd_tree(Node root, Point search_from, ClusterDist* best) {
     second = root.right[0];
   }
 
-  search_kd_tree(first, search_from, best);
-
-  long double minDistanceToOther = abs(second.value - search_from.coords[dim]);
+  search_kd_tree_help(first, search_from, best);
+  long double minDistanceToOther = abs(root.value - search_from.coords[root.dim]);
   if (minDistanceToOther < (*best).distance) {
-    search_kd_tree(second, search_from, best);
+    search_kd_tree_help(second, search_from, best);
   }
 }
 
 int curr_dim = 0;  // Used in qsort to decide what dim we are looking at.
 
-Node build_kd_tree(Point* clusterPoints) {
+Node* build_kd_tree(Point* clusterPoints) {
   Cluster clusters[num_clusters];
   int i;
+
   for (i = 0; i < num_clusters; i++) {
     Cluster current;
     current.ID = i;
@@ -51,28 +58,33 @@ Node build_kd_tree(Point* clusterPoints) {
 
   return build_kd_tree_helper(clusters, num_clusters, 0);
 }
-int firstTimeOnly = 1;
-Node build_kd_tree_helper(Cluster* clusters, int size, int dim) {
-  if (firstTimeOnly == 1) {
-    int i;
-    // printf("In recusive call\n");
-    // for (i = 0; i < size; i++) {
-    //   display_point(clusters[i].point);
-    // }
-    // printf("Done with current level\n");
+
+Node* build_kd_tree(Point* clusterPoints) {
+  Cluster clusters[num_clusters];
+  int i, j;
+  for (i = 0; i < num_clusters; i++) {
+    clusters[i].ID = i;
+    for (j = 0; j < dims; j++) {
+      clusters[i].point.coords[j] = clusterPoints[i].coords[j];
+    }
   }
-  Node root;
-  root.dim = dim;
+
+  return build_kd_tree_helper(clusters, num_clusters, 0);
+}
+
+Node* build_kd_tree_helper(Cluster* clusters, int size, int dim) {
+  Node* root = malloc(sizeof(Node));
+  root->dim = dim;
   // If there is only one element in the list, this is a leaf.
   if (size == 1) {
-    root.cluster = clusters[0];
+    root->cluster = clusters[0];
     // printf("Creating cluster with point: ");
     // display_point(root.cluster.point);
-    root.isLeaf = 1;
+    root->isLeaf = 1;
     return root;
   }
 
-  root.isLeaf = 0;
+  root->isLeaf = 0;
 
   curr_dim = dim;
   // Sort each node with repsect to the current dimention.
@@ -87,38 +99,34 @@ Node build_kd_tree_helper(Cluster* clusters, int size, int dim) {
   int left_size = size / 2;
   // printf("Left side: ");
   // display_point(left_side[0].point);
-  Node* left = malloc(sizeof(Node));
 
   // Calculate area for left side
-  Cluster* right_side = &(clusters[(int)(floor(size / 2))]);
+  Cluster* right_side = &(clusters[size / 2]);
   // printf("Right side: ");
   // display_point(right_side[0].point);
   int right_size = ceil(size / 2.0);
-  Node* right = malloc(sizeof(Node));
 
-  root.value =
-      right_side[0]
-          .point.coords[dim];  // If dim values is >= to this we go right.
+  root->value = right_side[0]
+                    .point.coords[dim];  // If dim values is >= to this we go right.
 
   // TODO: Check time to see if we should make it parallel for both calls.
   // Recursivly build up the left side.
-  *left = build_kd_tree_helper(left_side, left_size, local_dim);
-  root.left = left;
-
   // Recursivly build up the right side.
-  *right = build_kd_tree_helper(right_side, right_size, local_dim);
-  root.right = right;
+
+  root->right = build_kd_tree_helper(right_side, right_size, local_dim);
+  root->left = build_kd_tree_helper(left_side, left_size, local_dim);
 
   return root;
 }
 
-void realse_kd_tree(Node root) {
-  if (root.isLeaf == 0) {
-    realse_kd_tree(*root.left);
-    realse_kd_tree(*root.right);
+void realse_kd_tree(Node* root) {
+  if (root->isLeaf == 0) {
+    realse_kd_tree(root->left);
+    realse_kd_tree(root->right);
+    free(root->left);
+    free(root->right);
   }
-  free(root.left);
-  free(root.right);
+
 }  // TODO: Make realse of KD Tree
 
 int compare(const void* a, const void* b) {
@@ -135,47 +143,47 @@ int compare(const void* a, const void* b) {
     return 1;
 }
 
-int main() {
-  Point clusters[num_clusters];
-  init_uniform_cluster_centers(clusters);
-  // print_cluster_centers(clusters);
-  Node root = build_kd_tree(clusters);
-  // display_kd_tree(root);
-  Point target;
-  int i, j;
-  for (i = 0; i < dims; i++) {
-    target.coords[i] = 323;
-  }
+// int main() {
+//   Point clusters[num_clusters];
+//   init_uniform_cluster_centers(clusters);
+//   // print_cluster_centers(clusters);
+//   Node root = build_kd_tree(clusters);
+//   // display_kd_tree(root);
+//   Point target;
+//   int i, j;
+//   for (i = 0; i < dims; i++) {
+//     target.coords[i] = 323;
+//   }
 
-  ClusterDist best;
+//   ClusterDist best;
 
-  best.distance = RAND_MAX;
+//   best.distance = RAND_MAX;
 
-  count = 0;
+//   count = 0;
 
-  search_kd_tree(root, target, &best);
-  realse_kd_tree(root);
-  printf("Best point: ");
-  Point best_point = best.cluster.point;
-  display_point(best_point);
-  printf("Distance: %.2Lf\n", best.distance);
-  printf("Using: %d look ups\n", count);
+//   search_kd_tree(root, target, &best);
+//   realse_kd_tree(root);
+//   printf("Best point: ");
+//   Point best_point = best.cluster.point;
+//   display_point(best_point);
+//   printf("Distance: %.2Lf\n", best.distance);
+//   printf("Using: %d look ups\n", count);
 
-  Point best_cluster;
-  long double min = RAND_MAX;
-  for (i = 0; i < num_clusters; i++) {
-    long double current = calc_dist(target, clusters[i]);
-    // display_point(clusters[i]);
-    if (current < min) {
-      best_cluster = clusters[i];
-      min = current;
-    }
-  }
+//   Point best_cluster;
+//   long double min = RAND_MAX;
+//   for (i = 0; i < num_clusters; i++) {
+//     long double current = calc_dist(target, clusters[i]);
+//     // display_point(clusters[i]);
+//     if (current < min) {
+//       best_cluster = clusters[i];
+//       min = current;
+//     }
+//   }
 
-  printf("Found to be best: ");
-  display_point(best_cluster);
-  printf("Found best distance: %2.Lf\n", min);
-}
+//   printf("Found to be best: ");
+//   display_point(best_cluster);
+//   printf("Found best distance: %2.Lf\n", min);
+// }
 
 void display_point(Point point) {
   int i;
