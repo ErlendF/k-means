@@ -1,5 +1,7 @@
 #include "brute_force.h"
 
+#include <stdio.h>
+
 int move_cluster_centers(Point* points, Point* clusters, int* belongs_to) {
   int i, j, cluster;
   int moved = 0;
