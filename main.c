@@ -277,7 +277,7 @@ void parallel_kd_tree() {
     if (verbose)
       print_measures(points, clusters_copy, belongs_to);
   } else {
-    write_performance(-1, "Parallel", "KD-Tree", mt2 - mt1);
+    write_performance(omp_get_max_threads(), "Parallel", "KD-Tree", mt2 - mt1);
   }
 }
 
@@ -296,7 +296,7 @@ void sequential_kd_tree() {
     if (verbose)
       print_measures(points, clusters_copy, belongs_to);
   } else {
-    write_performance(-1, "Parallel", "KD-Tree", mt2 - mt1);
+    write_performance(-1, "Sequential", "KD-Tree", mt2 - mt1);
   }
 }
 
