@@ -1,20 +1,14 @@
 // Builds and searches in KD-trees
 
 #include "kd_tree.h"
-int count = 0;  // Used to count how many calls to search_kd_tree there is.
 /**
  * Information of the best is stored in the "best" value sent in.
  */
 void search_kd_tree(Node root, Point search_from, ClusterDist* best) {
-  count = 0;
   search_kd_tree_help(root, search_from, best);
-
-  //printf("Checked: %d\n", count);
 }
 
 void search_kd_tree_help(Node root, Point search_from, ClusterDist* best) {
-  count++;  // Lets see how many things we visit.
-
   if (root.isLeaf == 1) {
     long double curr_distance = calc_dist(search_from, root.cluster.point);
     if ((*best).distance > curr_distance) {
@@ -44,7 +38,7 @@ void search_kd_tree_help(Node root, Point search_from, ClusterDist* best) {
   }
 }
 
-int curr_dim = 0;  // Used in qsort to decide what dim we are looking at.
+//int curr_dim = 0;  // Used in qsort to decide what dim we are looking at.
 
 Node* build_kd_tree(Point* clusterPoints) {
   Cluster clusters[num_clusters];
@@ -73,24 +67,18 @@ Node* build_kd_tree_helper(Cluster* clusters, int size, int dim) {
 
   root->isLeaf = 0;
 
-  curr_dim = dim;
-  // Sort each node with repsect to the current dimention.
-  qsort(clusters, size, sizeof(Cluster), compare);
+  int sort_dim = dim;
+  qsort_r(clusters, size, sizeof(Cluster), &sort_dim, compare);
 
   // Cycle through every dimention when splitting.
-
   int local_dim = (dim + 1) % dims;
 
   // Calculate area for left side
   Cluster* left_side = clusters;
   int left_size = size / 2;
-  // printf("Left side: ");
-  // display_point(left_side[0].point);
 
   // Calculate area for left side
   Cluster* right_side = &(clusters[size / 2]);
-  // printf("Right side: ");
-  // display_point(right_side[0].point);
   int right_size = ceil(size / 2.0);
 
   root->value = right_side[0]
@@ -114,11 +102,12 @@ void release_kd_tree(Node* root) {
   }
 }
 
-int compare(const void* a, const void* b) {
+int compare(void* pv, const void* a, const void* b) {
+  int dim = *(int*)pv;
   Cluster point_a = *((Cluster*)a);
   Cluster point_b = *((Cluster*)b);
-  int compare_a = point_a.point.coords[curr_dim];
-  int compare_b = point_b.point.coords[curr_dim];
+  int compare_a = point_a.point.coords[dim];
+  int compare_b = point_b.point.coords[dim];
 
   if (compare_a == compare_b)
     return 0;
